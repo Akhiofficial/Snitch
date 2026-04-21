@@ -6,32 +6,45 @@ export const useAuth = () => {
 
     const dispatch = useDispatch();
 
-    async function handleRegister(username, email, password, contact, fullname , isSeller=false) {
-        const data = await registerUser({ username, email, password, contact, fullname , isSeller});
-        dispatch(setUser(data.user));
+    async function handleRegister(userData) {
+        try {
+            dispatch(setLoading(true));
+            const data = await registerUser(userData);
+            dispatch(setUser(data.user));
+            dispatch(setLoading(false));
+            return data;
 
-        dispatch(setLoading(false));
-
-        return data;
+        } catch (error) {
+            dispatch(setError(error.response?.data?.message || error.message));
+            dispatch(setLoading(false));
+            throw error;
+        }
     }
 
-    async function handleLogin(username, password, contact) {
+    async function handleLogin(credentials) {
         try {
-            setLoading(true);
-            const response = await loginUser({ username, password, contact });
-            setUser(response.user);
-            setLoading(false);
+            dispatch(setLoading(true));
+            const response = await loginUser(credentials);
+            dispatch(setUser(response.user));
+            dispatch(setLoading(false));
             return response;
+
         } catch (error) {
-            setError(error);
-            setLoading(false);
+            dispatch(setError(error.response?.data?.message || error.message));
+            dispatch(setLoading(false));
             throw error;
         }
     }
 
 
+
+    function clearAuthError() {
+        dispatch(setError(null));
+    }
+
     return {
         handleRegister,
-        handleLogin
+        handleLogin,
+        clearAuthError
     }
-}
+}

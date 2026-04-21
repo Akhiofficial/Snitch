@@ -1,9 +1,159 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../hook/useAuth';
+import { Link, useNavigate } from 'react-router';
+import { useSelector } from 'react-redux';
+
 
 const Login = () => {
-  return (
-    <div>Login</div>
-  )
-}
+    const { handleLogin, clearAuthError } = useAuth();
+    const { loading, error } = useSelector(state => state.auth);
+    const [formData, setFormData] = useState({
+        identifier: '', // Can be username or contact
+        password: ''
+    });
+    const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
 
-export default Login
+    useEffect(() => {
+        return () => clearAuthError();
+    }, []);
+
+    const handleChange = (e) => {
+        if (error) clearAuthError();
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            // The backend expects { username, password, contact }. 
+            // We'll pass the identifier to both username and contact fields.
+            await handleLogin({
+                username: formData.identifier,
+                password: formData.password,
+                contact: formData.identifier
+            });
+            navigate('/');
+        } catch (error) {
+            console.error("Login attempt failed:", error.response?.data?.message || error.message);
+        }
+
+    };
+
+    return (
+        <div className="min-h-screen bg-brand-black flex flex-row font-inter">
+      {/* Visual Section - Left Side */}
+      <div className="hidden md:flex md:w-1/3 lg:w-1/2 relative bg-brand-dark">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat grayscale-30 hover:grayscale-0 transition-all duration-1000"
+          style={{ backgroundImage: "url('/assets/login-bg.png')" }}
+        />
+        <div className="absolute inset-0 bg-linear-to-r from-transparent to-brand-black" />
+        
+        <div className="absolute top-12 left-12 z-10">
+          <div className="h-0.5 w-12 bg-brand-green mb-4" />
+          <h2 className="text-4xl font-space font-bold text-white tracking-tight uppercase">
+            Define <br /> <span className="text-brand-green italic text-5xl">Reality.</span>
+          </h2>
+        </div>
+      </div>
+
+            <div className="w-full md:w-2/3 lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12">
+            <div className="w-full max-w-lg space-y-12">
+                {/* Header Section */}
+                <div className="space-y-4">
+                    <div className="text-brand-green text-xs tracking-[0.3em] font-space uppercase">
+                        Marketplace Authentication
+                    </div>
+                    <h1 className="text-5xl sm:text-7xl font-space font-bold tracking-tight text-white leading-none">
+                        RETAIL <br /><span className="text-brand-green font-bold">GATEWAY.</span>
+                    </h1>
+                    <p className="text-zinc-500 max-w-sm text-lg leading-relaxed">
+                        Verify your merchant or buyer status to enter the Snitch e-commerce ecosystem.
+                    </p>
+                </div>
+
+                {/* Error Banner */}
+                {error && (
+                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                        <p className="text-red-500 font-space text-[11px] uppercase tracking-wider">{error}</p>
+                    </div>
+                )}
+
+
+
+                {/* Login Form */}
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] text-zinc-500 font-space uppercase tracking-widest pl-1">Username or Contact</label>
+                            <input
+                                required
+                                type="text"
+                                name="identifier"
+                                value={formData.identifier}
+                                onChange={handleChange}
+                                placeholder="johndoe7 or +1..."
+                                className="w-full bg-brand-dark/40 border border-zinc-800/50 focus:border-brand-green/50 text-white p-5 rounded-xl outline-none transition-all placeholder:text-zinc-700"
+                            />
+                        </div>
+
+                        <div className="space-y-2 relative">
+                            <label className="text-[10px] text-zinc-500 font-space uppercase tracking-widest pl-1">Access Phrase</label>
+                            <input
+                                required
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="••••••••"
+                                className="w-full bg-brand-dark/40 border border-zinc-800/50 focus:border-brand-green/50 text-white p-5 rounded-xl outline-none transition-all placeholder:text-zinc-700"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 bottom-5 text-zinc-600 hover:text-brand-green transition-colors font-space text-[10px] tracking-widest"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                                {showPassword ? "HIDE" : "SHOW"}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs font-space">
+                        <Link to="/forgot-password" title="Coming soon" className="text-zinc-600 hover:text-zinc-400 tracking-widest uppercase">
+                            Forgot access phrase?
+                        </Link>
+                    </div>
+
+                    <button
+                        disabled={loading}
+                        type="submit"
+                        className="w-full bg-brand-green text-brand-black font-space font-bold py-5 rounded-xl hover:bg-brand-green-matte hover:shadow-[0_0_40px_rgba(148,201,115,0.2)] transition-all transform active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    >
+                        {loading ? 'VERIFYING...' : 'SIGN IN'}
+                    </button>
+
+                </form>
+
+                <div className="text-center pt-4">
+                    <p className="text-zinc-600 font-inter text-sm">
+                        Don't have an account?{" "}
+                        <Link to="/register" className="text-brand-green hover:underline underline-offset-8 decoration-1 tracking-[0.2em] font-space text-[11px] uppercase ml-2 transition-all">
+                            Register
+                        </Link>
+                    </p>
+                </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Login;
