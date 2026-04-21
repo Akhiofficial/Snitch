@@ -90,4 +90,9 @@ const loginUser = async (req, res) => {
     }
 }
 
-export { registerUser, loginUser };
+const googleCallback = async (req, res) => {
+    
+    res.redirect("http://localhost:5173/");
+}
+
+export { registerUser, loginUser , googleCallback};
