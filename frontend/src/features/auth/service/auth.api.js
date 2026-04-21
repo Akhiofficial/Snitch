@@ -1,9 +1,13 @@
 import axios from "axios";
 
+
+
+
 const authApiInstance = axios.create({
-    baseURL: "http://localhost:3000/api/auth",
+    baseURL: "/api/auth",
     withCredentials: true
 });
+
 
 export async function registerUser({ username, email, password, contact, fullname , isSeller=false}) {
     try {
@@ -21,6 +25,9 @@ export async function registerUser({ username, email, password, contact, fullnam
     }
 }
 
+ /**
+ * @url http://localhost:3000/api/auth/login
+ */
 export async function loginUser({ username, password, contact }) {
     try {
         const response = await authApiInstance.post("/login", {
