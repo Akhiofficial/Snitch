@@ -2,6 +2,16 @@
 node_modules/
 jspm_packages/
 
+backend/node_modules/
+frontend/node_modules/
+
+backend/.env
+frontend/.env
+
+backend/.env.local
+frontend/.env.local
+
+
 # Build outputs
 frontend/dist/
 frontend/dist-ssr/
