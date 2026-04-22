@@ -12,12 +12,18 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    photos: {
+        type: String
+    },
     password: {
         type: String,
-        required: true,
+        required: function () {
+            return !this.googleId;
+        }
     },
     contact: {
-        type: String
+        type: String,
+        required: false,
     },
     fullname: {
         type: String
@@ -26,18 +32,21 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ["buyer", "seller"],
         default: "buyer"
-    },    
+    },
+    googleId: {
+        type: String,
+    }
 });
 
-userSchema.pre("save", async function(){
-    if(!this.isModified("password")) return;
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
 
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(this.password, salt);
     this.password = hash;
 });
 
-userSchema.methods.comparePassword = async function(password){
+userSchema.methods.comparePassword = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
 

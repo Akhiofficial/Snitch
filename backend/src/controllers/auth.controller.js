@@ -58,7 +58,7 @@ const registerUser = async (req, res) => {
         });
 
         await sendTokenResponse(user, res, "User registered successfully");
-        
+
     } catch (error) {
         // handling error
         res.status(500).json({ message: error.message });
@@ -67,7 +67,7 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
     // destructuring the request body
-    const { username, password , contact } = req.body;
+    const { username, password, contact } = req.body;
 
     try {
         // checking if user exists
@@ -91,8 +91,33 @@ const loginUser = async (req, res) => {
 }
 
 const googleCallback = async (req, res) => {
-    
-    res.redirect("http://localhost:5173/");
+    const { id, displayName, emails, photos } = req.user
+    const email = emails[0].value;
+    const profilePicture = photos[0].value;
+
+    let user = await userModel.findOne({ email });
+
+    if (!user) {
+        user = await userModel.create({
+            email,
+            googleId: id,
+            username: displayName,
+            fullname: displayName,
+        });
+    }
+
+    const token = jwt.sign(
+        {
+            id: user._id,
+        },
+        config.JWT_SECRET,
+        { expiresIn: "7d" }
+    );
+
+    res.cookie("token", token);
+
+    res.redirect(config.NODE_ENV === "development" ? "http://localhost:5173" : "/");
+
 }
 
-export { registerUser, loginUser , googleCallback};
+export { registerUser, loginUser, googleCallback };

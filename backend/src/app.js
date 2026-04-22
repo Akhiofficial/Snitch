@@ -1,6 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
@@ -13,6 +14,11 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors({
+    origin: config.NODE_ENV === "development" ? "http://localhost:5173" : "",
+    credentials: true
+}));
+
 
 
 // google auth 

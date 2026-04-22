@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Roboto:wght@400;500&display=swap');
 @import "tailwindcss";
 
 
@@ -10,6 +10,7 @@
   
   --font-space: "Space Grotesk", sans-serif;
   --font-inter: "Inter", sans-serif;
+  --font-roboto: "Roboto", sans-serif;
   
   --shadow-green-glow: 0 0 20px rgba(148, 201, 115, 0.2);
 }
