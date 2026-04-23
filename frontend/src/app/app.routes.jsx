@@ -3,7 +3,7 @@ import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import CreateProduct from "../features/products/pages/CreateProduct";
 import SellerProductView from "../features/products/pages/SellerProductView";
-import SellerInventory from "../features/products/pages/SellerInventory";
+import SellerDashboard from "../features/products/pages/SellerDashboard";
 import ErrorPage from "./ErrorPage";
 
 
@@ -33,8 +33,8 @@ const routes = createBrowserRouter([
     },
 
     {
-        path: "/seller/inventory",
-        element: <SellerInventory />
+        path: "/seller/dashboard",
+        element: <SellerDashboard />
     }
 
 ]);
