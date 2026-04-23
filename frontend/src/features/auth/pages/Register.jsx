@@ -53,37 +53,41 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen bg-brand-black flex flex-col md:flex-row overflow-hidden">
-            {/* Visual Section - Left Side */}
-            <div className="hidden md:flex md:w-1/3 lg:w-1/2 relative bg-brand-dark">
+        <div className="min-h-screen bg-brand-cream flex flex-row overflow-hidden font-sans">
+            {/* Merged Visual Section */}
+            <div className="hidden lg:flex lg:w-1/3 relative shrink-0 overflow-hidden">
                 <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat grayscale-30 hover:grayscale-0 transition-all duration-1000"
-                    style={{ backgroundImage: "url('/assets/register-bg.png')" }}
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-[2s] ease-out scale-110"
+                    style={{ backgroundImage: "url('/assets/minimal_fashion_bg.png')" }}
                 />
-                <div className="absolute inset-0 bg-linear-to-r from-transparent to-brand-black" />
+                {/* Soft Gradient Merge */}
+                <div className="absolute inset-0 bg-linear-to-r from-brand-black/10 via-brand-cream/40 to-brand-cream" />
 
-                <div className="absolute top-12 left-12 z-10">
-                    <div className="h-0.5 w-12 bg-brand-green mb-4" />
-                    <h2 className="text-4xl font-space font-bold text-white tracking-tight uppercase">
-                        The <span className="text-brand-green">Curator's</span> <br />Perspective.
-                    </h2>
+                <div className="absolute bottom-32 left-16 z-10 space-y-8">
+                    <div className="h-px w-24 bg-brand-black/20 mb-12" />
+                    <div className="space-y-4">
+                        <span className="text-[10px] font-sans text-brand-stone uppercase tracking-[0.6em]">Membership</span>
+                        <h2 className="text-6xl xl:text-7xl font-serif text-brand-black leading-tight">
+                            Join the <br /> <span className="italic text-brand-accent">Curation.</span>
+                        </h2>
+                    </div>
                 </div>
             </div>
 
-            {/* Form Section - Right Side */}
-            <div className="flex-1 flex items-center justify-center p-8 sm:p-12 md:p-20 bg-brand-black z-20 overflow-y-auto custom-scrollbar">
-                <div className="w-full max-w-xl space-y-10">
+            {/* Form Section */}
+            <div className="flex-1 flex items-center justify-center p-8 sm:p-12 md:p-24 bg-brand-cream z-20 overflow-y-auto animate-reveal">
+                <div className="w-full max-w-xl space-y-16">
                     {/* Header Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <span className="text-brand-green text-[10px] tracking-[0.5em] font-space uppercase">Initialization</span>
-                            <div className="flex-1 h-px bg-zinc-800" />
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-4">
+                            <span className="text-brand-stone text-[10px] tracking-[0.5em] font-sans uppercase font-medium">New Account</span>
+                            <div className="flex-1 h-px bg-brand-stone/10" />
                         </div>
-                        <h1 className="text-4xl sm:text-5xl font-space font-bold tracking-tight text-white leading-none">
-                            Join the <span className="text-brand-green italic">Circle.</span>
+                        <h1 className="text-5xl font-serif text-brand-black leading-none">
+                            Identity <br /><span className="italic text-brand-accent">Creation.</span>
                         </h1>
-                        <p className="text-zinc-500 font-inter text-sm max-w-sm leading-relaxed">
-                            Become a verified curator or merchant in our exclusive retail ecosystem.
+                        <p className="text-brand-stone font-sans text-sm max-w-sm leading-relaxed">
+                            Complete your registration to access our exclusive curated marketplace.
                         </p>
                     </div>
 
@@ -96,10 +100,10 @@ const Register = () => {
                     )}
 
                     {/* Registration Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div className="space-y-1.5">
-                                <label className="text-[9px] text-zinc-600 font-space uppercase tracking-[0.2em] pl-1">Full Identity</label>
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Full Name</label>
                                 <input
                                     required
                                     type="text"
@@ -107,11 +111,11 @@ const Register = () => {
                                     value={formData.fullname}
                                     onChange={handleChange}
                                     placeholder="Enter your name"
-                                    className="w-full bg-brand-dark/10 border border-zinc-800 focus:border-brand-green/30 text-white p-4 rounded-lg outline-none transition-all font-inter placeholder:text-zinc-800 text-sm"
+                                    className="w-full bg-transparent border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-4 rounded-none outline-none transition-all font-sans placeholder:text-brand-stone/40 text-sm"
                                 />
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[9px] text-zinc-600 font-space uppercase tracking-[0.2em] pl-1">Public Handle</label>
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Username</label>
                                 <input
                                     required
                                     type="text"
@@ -119,14 +123,14 @@ const Register = () => {
                                     value={formData.username}
                                     onChange={handleChange}
                                     placeholder="@handle"
-                                    className="w-full bg-brand-dark/10 border border-zinc-800 focus:border-brand-green/30 text-white p-4 rounded-lg outline-none transition-all font-inter placeholder:text-zinc-800 text-sm"
+                                    className="w-full bg-transparent border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-4 rounded-none outline-none transition-all font-sans placeholder:text-brand-stone/40 text-sm"
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-5">
-                            <div className="space-y-1.5">
-                                <label className="text-[9px] text-zinc-600 font-space uppercase tracking-[0.2em] pl-1">Digital Mail</label>
+                        <div className="space-y-8">
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Email Address</label>
                                 <input
                                     required
                                     type="email"
@@ -134,25 +138,25 @@ const Register = () => {
                                     value={formData.email}
                                     onChange={handleChange}
                                     placeholder="your@email.com"
-                                    className="w-full bg-brand-dark/10 border border-zinc-800 focus:border-brand-green/30 text-white p-4 rounded-lg outline-none transition-all font-inter placeholder:text-zinc-800 text-sm"
+                                    className="w-full bg-transparent border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-4 rounded-none outline-none transition-all font-sans placeholder:text-brand-stone/40 text-sm"
                                 />
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-[9px] text-zinc-600 font-space uppercase tracking-[0.2em] pl-1">Direct Contact</label>
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Contact Number</label>
                                 <input
                                     required
                                     type="text"
                                     name="contact"
                                     value={formData.contact}
                                     onChange={handleChange}
-                                    placeholder="9876543210"
-                                    className="w-full bg-brand-dark/10 border border-zinc-800 focus:border-brand-green/30 text-white p-4 rounded-lg outline-none transition-all font-inter placeholder:text-zinc-800 text-sm"
+                                    placeholder="+1..."
+                                    className="w-full bg-transparent border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-4 rounded-none outline-none transition-all font-sans placeholder:text-brand-stone/40 text-sm"
                                 />
                             </div>
 
-                            <div className="space-y-1.5 relative">
-                                <label className="text-[9px] text-zinc-600 font-space uppercase tracking-[0.2em] pl-1">Secure Phrase</label>
+                            <div className="space-y-2 relative">
+                                <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Secure Phrase</label>
                                 <input
                                     required
                                     type={showPassword ? "text" : "password"}
@@ -160,26 +164,26 @@ const Register = () => {
                                     value={formData.password}
                                     onChange={handleChange}
                                     placeholder="••••••••"
-                                    className="w-full bg-brand-dark/10 border border-zinc-800 focus:border-brand-green/30 text-white p-4 rounded-lg outline-none transition-all font-inter placeholder:text-zinc-800 text-sm"
+                                    className="w-full bg-transparent border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-4 rounded-none outline-none transition-all font-sans placeholder:text-brand-stone/40 text-sm"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 bottom-4 text-zinc-700 hover:text-brand-green transition-colors font-space text-[9px] tracking-tighter"
+                                    className="absolute right-0 bottom-4 text-brand-stone hover:text-brand-black transition-colors font-sans text-[10px] tracking-widest"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
-                                    {showPassword ? "CONCEAL" : "REVEAL"}
+                                    {showPassword ? "HIDE" : "SHOW"}
                                 </button>
                             </div>
                         </div>
 
                         {/* Seller Flag Section */}
-                        <div className="p-5 bg-brand-dark/20 rounded-xl border border-zinc-800/50 space-y-4">
+                        <div className="p-8 bg-white border border-brand-stone/10 shadow-premium space-y-4">
                             <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                    <h3 className="text-white font-space text-[10px] tracking-[0.2em] uppercase">Become a Merchant</h3>
-                                    <p className="text-zinc-600 text-[10px] font-inter max-w-[200px]">
-                                        Unlock the ability to list and curate luxury goods.
+                                <div className="space-y-1">
+                                    <h3 className="text-brand-black font-sans text-[11px] tracking-[0.2em] uppercase font-semibold">Join as Merchant</h3>
+                                    <p className="text-brand-stone text-[10px] font-sans max-w-[250px] leading-relaxed">
+                                        Gain the ability to list and curate your own luxury collections.
                                     </p>
                                 </div>
 
@@ -191,7 +195,7 @@ const Register = () => {
                                         onChange={handleChange}
                                         className="sr-only peer"
                                     />
-                                    <div className="w-10 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-600 after:border-zinc-500 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-green peer-checked:after:bg-white"></div>
+                                    <div className="w-12 h-6 bg-brand-stone/20 peer-focus:outline-none rounded-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-brand-stone after:rounded-none after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-accent peer-checked:after:bg-white"></div>
                                 </label>
                             </div>
                         </div>
@@ -199,9 +203,9 @@ const Register = () => {
                         <button
                             disabled={loading}
                             type="submit"
-                            className="w-full bg-brand-green text-brand-black font-space font-bold py-5 rounded-lg hover:brightness-110 shadow-lg hover:shadow-brand-green/10 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-[11px]"
+                            className="w-full bg-brand-black text-white font-sans font-medium py-5 rounded-none hover:bg-brand-accent transition-all duration-500 active:scale-[0.98] disabled:opacity-50 shadow-premium uppercase tracking-[0.2em] text-[11px]"
                         >
-                            {loading ? 'Processing...' : 'Complete Initialization'}
+                            {loading ? 'Creating Identity...' : 'Complete Registration'}
                         </button>
 
                         <div className="relative py-2">
@@ -243,10 +247,10 @@ const Register = () => {
 
                     </form>
 
-                    <div className="text-center">
-                        <p className="text-zinc-600 font-inter text-xs">
+                    <div className="text-center pt-8">
+                        <p className="text-brand-stone font-sans text-[11px] tracking-wide uppercase">
                             Already authenticated?{" "}
-                            <Link to="/login" className="text-brand-green hover:text-white transition-colors tracking-[0.3em] font-space text-[10px] uppercase ml-3">
+                            <Link to="/login" className="text-brand-black hover:text-brand-accent transition-colors font-semibold border-b border-brand-black/20 ml-2">
                                 Sign In
                             </Link>
                         </p>

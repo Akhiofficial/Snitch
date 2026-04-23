@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { registerUser, loginUser, googleCallback } from "../controllers/auth.controller.js";
+import { registerUser, loginUser, googleCallback, getMe } from "../controllers/auth.controller.js";
 import { validateRegister, validateLogin } from "../validators/auth.validator.js";
 import passport from "passport";
 import { config } from "../config/config.ts";
+import { authenticateUser } from "../middlewear/auth.middlewear.js";
 
 
 
@@ -46,6 +47,13 @@ router.get('/google/callback',
     }),
     googleCallback
 );
+
+/*
+ @route GET /api/auth/me
+ @desc Get current user
+ @access Private
+*/
+router.get("/me", authenticateUser, getMe)
 
 
 export default router;

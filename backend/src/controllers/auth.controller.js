@@ -121,4 +121,18 @@ const googleCallback = async (req, res) => {
 
 }
 
-export { registerUser, loginUser, googleCallback };
+const getMe = async (req, res) => {
+    try {
+        const user = req.user;
+
+        res.status(200).json({
+            message: "User fetched successfully",
+            success: true,
+            user
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message, success: false });
+    }
+}
+
+export { registerUser, loginUser, googleCallback, getMe };

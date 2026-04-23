@@ -1,5 +1,5 @@
 import { setUser, setLoading, setError } from "../state/auth.slice";
-import { registerUser, loginUser } from "../service/auth.api";
+import { registerUser, loginUser, getMe } from "../service/auth.api";
 import { useDispatch } from "react-redux";
 
 export const useAuth = () => {
@@ -12,7 +12,7 @@ export const useAuth = () => {
             const data = await registerUser(userData);
             dispatch(setUser(data.user));
             dispatch(setLoading(false));
-            return data;
+            return data.user;
 
         } catch (error) {
             dispatch(setError(error.response?.data?.message || error.message));
@@ -24,10 +24,10 @@ export const useAuth = () => {
     async function handleLogin(credentials) {
         try {
             dispatch(setLoading(true));
-            const response = await loginUser(credentials);
-            dispatch(setUser(response.user));
+            const data = await loginUser(credentials);
+            dispatch(setUser(data.user));
             dispatch(setLoading(false));
-            return response;
+            return data.user;
 
         } catch (error) {
             dispatch(setError(error.response?.data?.message || error.message));
@@ -37,6 +37,17 @@ export const useAuth = () => {
     }
 
 
+    async function handleGetMe() {
+        try {
+            const data = await getMe();
+            dispatch(setUser(data.user));
+        } catch (error) {
+            dispatch(setError(error.response?.data?.message || error.message));
+        } finally {
+            dispatch(setLoading(false));
+        }
+    }
+
 
     function clearAuthError() {
         dispatch(setError(null));
@@ -45,6 +56,7 @@ export const useAuth = () => {
     return {
         handleRegister,
         handleLogin,
+        handleGetMe,
         clearAuthError
     }
-}
+}

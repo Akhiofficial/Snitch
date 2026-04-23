@@ -72,49 +72,43 @@ const CreateProduct = () => {
     };
 
     return (
-        <div className="min-h-screen bg-brand-black flex flex-row font-inter overflow-hidden">
-            {/* Visual Section - Left Side (Refined Blending) */}
-            <div className="hidden md:flex md:w-1/4 lg:w-1/5 relative bg-brand-dark shrink-0 overflow-hidden border-r border-zinc-900/50">
+        <div className="min-h-screen bg-brand-cream flex flex-row font-sans">
+            {/* Merged Visual Section - Sticky on Desktop */}
+            <div className="hidden lg:flex lg:w-1/4 sticky top-0 h-screen shrink-0 overflow-hidden">
                 <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat grayscale-[0.8] brightness-[0.4] hover:grayscale-0 hover:brightness-100 transition-all duration-[1.5s] ease-out scale-105 hover:scale-100"
-                    style={{ backgroundImage: "url('/assets/seller-bg.png')" }}
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-[2s] ease-out scale-110"
+                    style={{ backgroundImage: "url('/assets/minimal_fashion_bg.png')" }}
                 />
-                {/* Complex Overlay for Better Merging */}
-                <div className="absolute inset-0 bg-linear-to-r from-transparent via-brand-black/20 to-brand-black" />
-                <div className="absolute inset-0 bg-linear-to-b from-brand-black/40 via-transparent to-brand-black/60" />
-
-                <div className="absolute top-16 left-10 z-10 space-y-4">
-                    <div className="h-px w-12 bg-brand-green/50" />
-                    <div className="space-y-1">
-                        <h2 className="text-3xl lg:text-4xl font-space font-bold text-white tracking-tighter uppercase leading-none">
-                            Expand
-                        </h2>
-                        <h2 className="text-4xl lg:text-5xl font-space font-bold text-brand-green italic tracking-tighter uppercase leading-none opacity-80">
-                            Inventory.
+                {/* Soft Gradient Merge */}
+                <div className="absolute inset-0 bg-linear-to-r from-brand-black/10 via-brand-cream/40 to-brand-cream" />
+                
+                <div className="absolute bottom-32 left-16 z-10 space-y-8">
+                    <div className="h-px w-24 bg-brand-black/20 mb-12" />
+                    <div className="space-y-4">
+                        <span className="text-[10px] font-sans text-brand-stone uppercase tracking-[0.6em]">Registry</span>
+                        <h2 className="text-5xl xl:text-6xl font-serif text-brand-black leading-tight">
+                            The New <br /> <span className="italic text-brand-accent">Curation.</span>
                         </h2>
                     </div>
-                    <p className="text-[10px] font-space text-zinc-500 uppercase tracking-[0.4em] pt-4 border-t border-zinc-800/30">
-                        Asset Registration
-                    </p>
                 </div>
             </div>
 
-            {/* Form Section - Premium Polish */}
-            <div className="w-full md:w-3/4 lg:w-4/5 flex flex-col items-center p-6 sm:p-12 lg:p-24 overflow-y-auto custom-scrollbar">
-                <div className="w-full max-w-6xl space-y-16">
+            {/* Form Section - Natural Scrolling */}
+            <div className="flex-1 flex flex-col items-center p-8 sm:p-12 lg:p-20 lg:py-24 bg-brand-cream relative">
+                <div className="w-full max-w-7xl space-y-24 animate-reveal">
                     {/* Header Section */}
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                            <span className="w-1 h-1 rounded-full bg-brand-green animate-pulse" />
-                            <div className="text-brand-green text-[10px] tracking-[0.5em] font-space uppercase">
-                                System / Inventory / New
+                    <div className="space-y-10">
+                        <div className="flex items-center gap-6">
+                            <div className="h-px w-8 bg-brand-accent" />
+                            <div className="text-brand-stone text-[10px] tracking-[0.5em] font-sans uppercase font-medium">
+                                Inventory / Management / New Entry
                             </div>
                         </div>
-                        <h1 className="text-6xl sm:text-7xl lg:text-8xl font-space font-bold tracking-tighter leading-[0.85] uppercase text-white">
-                            Create <br /><span className="text-brand-green">Product.</span>
+                        <h1 className="text-8xl lg:text-[10rem] font-serif leading-[0.7] text-brand-black tracking-tighter">
+                            New <br /><span className="italic text-brand-accent">Piece.</span>
                         </h1>
-                        <p className="text-zinc-500 max-w-xl text-lg leading-relaxed font-light">
-                            Introduce your new product to the Snitch marketplace with surgical precision. Every detail matters in the pursuit of visual excellence.
+                        <p className="text-brand-stone max-w-lg text-lg font-sans font-light leading-relaxed">
+                            Define the essence of your creation. Every attribute contributes to the narrative of luxury and precision.
                         </p>
                     </div>
 
@@ -126,38 +120,38 @@ const CreateProduct = () => {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-2 gap-20">
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-2 gap-24">
                         {/* Left Side: Text Details */}
-                        <div className="space-y-10">
-                            <div className="space-y-3 group">
-                                <label className="text-[10px] text-zinc-600 group-focus-within:text-brand-green font-space uppercase tracking-[0.2em] pl-1 transition-colors">Product Title</label>
+                        <div className="space-y-12">
+                            <div className="space-y-3">
+                                <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Product Title</label>
                                 <input
                                     required
                                     type="text"
                                     name="title"
                                     value={formData.title}
                                     onChange={handleChange}
-                                    placeholder="e.g., Obsidian Vessel 01"
-                                    className="w-full bg-zinc-900/20 border border-zinc-800/40 focus:border-brand-green/30 text-white p-6 rounded-2xl outline-none transition-all placeholder:text-zinc-800 text-lg hover:bg-zinc-900/40"
+                                    placeholder="e.g., Silk Blend Trousers"
+                                    className="w-full bg-white border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-6 rounded-none outline-none transition-all placeholder:text-brand-stone/30 text-xl font-serif hover:bg-white/80 shadow-premium"
                                 />
                             </div>
 
-                            <div className="space-y-3 group">
-                                <label className="text-[10px] text-zinc-600 group-focus-within:text-brand-green font-space uppercase tracking-[0.2em] pl-1 transition-colors">Narrative Description</label>
+                            <div className="space-y-3">
+                                <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Description</label>
                                 <textarea
                                     required
                                     name="description"
                                     value={formData.description}
                                     onChange={handleChange}
-                                    rows="8"
-                                    placeholder="Clandestine craftsmanship details..."
-                                    className="w-full bg-zinc-900/20 border border-zinc-800/40 focus:border-brand-green/30 text-white p-6 rounded-2xl outline-none transition-all placeholder:text-zinc-800 resize-none leading-relaxed hover:bg-zinc-900/40"
+                                    rows="6"
+                                    placeholder="The narrative behind the piece..."
+                                    className="w-full bg-white border border-brand-stone/10 focus:border-brand-black text-brand-black p-6 rounded-none outline-none transition-all placeholder:text-brand-stone/30 font-sans leading-relaxed shadow-premium resize-none"
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-3 group">
-                                    <label className="text-[10px] text-zinc-600 group-focus-within:text-brand-green font-space uppercase tracking-[0.2em] pl-1 transition-colors">Price Amounts </label>
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Price</label>
                                     <input
                                         required
                                         type="number"
@@ -165,35 +159,29 @@ const CreateProduct = () => {
                                         value={formData.priceAmount}
                                         onChange={handleChange}
                                         placeholder="0.00"
-                                        className="w-full bg-zinc-900/20 border border-zinc-800/40 focus:border-brand-green/30 text-white p-6 rounded-2xl outline-none transition-all placeholder:text-zinc-800 hover:bg-zinc-900/40"
+                                        className="w-full bg-white border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-6 rounded-none outline-none transition-all font-sans shadow-premium"
                                     />
                                 </div>
-                                <div className="space-y-3 group">
-                                    <label className="text-[10px] text-zinc-600 group-focus-within:text-brand-green font-space uppercase tracking-[0.2em] pl-1 transition-colors">Currency</label>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Currency</label>
                                     <div className="relative">
                                         <select
                                             name="priceCurrency"
                                             value={formData.priceCurrency}
                                             onChange={handleChange}
-                                            className="w-full bg-zinc-900/20 border border-zinc-800/40 focus:border-brand-green/30 text-white p-6 rounded-2xl outline-none transition-all appearance-none cursor-pointer hover:bg-zinc-900/40"
+                                            className="w-full bg-white border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-6 rounded-none outline-none transition-all appearance-none cursor-pointer shadow-premium"
                                         >
                                             <option value="INR">INR</option>
                                             <option value="USD">USD</option>
                                             <option value="EUR">EUR</option>
                                             <option value="GBP">GBP</option>
                                         </select>
-                                        <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600 group-focus-within:text-brand-green transition-colors">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </div>
                                     </div>
                                 </div>
-
                             </div>
 
-                            <div className="space-y-3 group">
-                                <label className="text-[10px] text-zinc-600 group-focus-within:text-brand-green font-space uppercase tracking-[0.2em] pl-1 transition-colors">Inventory Levels</label>
+                            <div className="space-y-3">
+                                <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Inventory Level</label>
                                 <input
                                     required
                                     type="number"
@@ -201,16 +189,16 @@ const CreateProduct = () => {
                                     value={formData.stock}
                                     onChange={handleChange}
                                     placeholder="Units available"
-                                    className="w-full bg-zinc-900/20 border border-zinc-800/40 focus:border-brand-green/30 text-white p-6 rounded-2xl outline-none transition-all placeholder:text-zinc-800 hover:bg-zinc-900/40"
+                                    className="w-full bg-white border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-6 rounded-none outline-none transition-all font-sans shadow-premium"
                                 />
                             </div>
                         </div>
 
                         {/* Right Side: Assets & Submit */}
-                        <div className="space-y-12 flex flex-col justify-between">
-                            <div className="space-y-10">
-                                <div className="space-y-3">
-                                    <label className="text-[10px] text-zinc-600 font-space uppercase tracking-[0.2em] pl-1">Visual Assets (Max 5)</label>
+                        <div className="space-y-16 flex flex-col justify-between">
+                            <div className="space-y-12">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Visual Curation (Max 5)</label>
                                     <div className="relative group/upload">
                                         <input
                                             type="file"
@@ -218,68 +206,63 @@ const CreateProduct = () => {
                                             accept="image/*"
                                             onChange={handleImageChange}
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50"
-                                            title="" /* Removes the 'No file chosen' tooltip */
+                                            title=""
                                         />
-                                        <div className="w-full aspect-video bg-zinc-900/10 border border-dashed border-zinc-800/60 group-hover/upload:border-brand-green/40 group-hover/upload:bg-zinc-900/30 rounded-4xl flex flex-col items-center justify-center gap-6 transition-all duration-500 overflow-hidden relative">
+                                        <div className="w-full aspect-video bg-white border border-brand-stone/10 group-hover/upload:border-brand-black transition-all duration-700 overflow-hidden relative shadow-premium">
                                             {imagePreviews.length > 0 ? (
                                                 <img 
                                                     src={imagePreviews[0]} 
                                                     alt="Main Preview" 
-                                                    className="absolute inset-0 w-full h-full object-cover opacity-20 grayscale transition-all duration-700 scale-110 group-hover/upload:scale-100 group-hover/upload:opacity-40 group-hover/upload:grayscale-0"
+                                                    className="absolute inset-0 w-full h-full object-cover transition-all duration-1000 group-hover/upload:scale-105"
                                                 />
                                             ) : (
-                                                <div className="text-zinc-800 group-hover/upload:text-brand-green/40 transition-all duration-500 transform group-hover/upload:scale-110">
-                                                    <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                <div className="text-brand-stone/20 group-hover/upload:text-brand-accent transition-all duration-500 transform group-hover/upload:scale-110 flex flex-col items-center justify-center gap-4">
+                                                    <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.5} d="M12 4v16m8-8H4" />
                                                     </svg>
+                                                    <p className="text-[9px] font-sans tracking-[0.4em] uppercase">Upload Visuals</p>
                                                 </div>
                                             )}
-                                            <div className="z-20 text-center pointer-events-none">
-                                                <p className="text-xs font-space tracking-[0.3em] uppercase text-zinc-400 mb-2 group-hover/upload:text-white transition-colors">Manifest Imagery</p>
-                                                <p className="text-[9px] text-zinc-700 font-space tracking-widest">DRAG ASSETS OR CLICK TO BROWSE</p>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Thumbnails */}
-                                <div className="grid grid-cols-5 gap-4">
+                                <div className="grid grid-cols-5 gap-6">
                                     {imagePreviews.map((preview, index) => (
-                                        <div key={index} className="relative aspect-square rounded-xl overflow-hidden group/thumb border border-zinc-900">
-                                            <img src={preview} alt={`Thumb ${index}`} className="w-full h-full object-cover grayscale opacity-40 group-hover/thumb:grayscale-0 group-hover/thumb:opacity-100 transition-all duration-500" />
+                                        <div key={index} className="relative aspect-square overflow-hidden group/thumb border border-brand-stone/10 bg-white shadow-premium">
+                                            <img src={preview} alt={`Thumb ${index}`} className="w-full h-full object-cover transition-all duration-500" />
                                             <button
                                                 type="button"
                                                 onClick={() => removeImage(index)}
                                                 className="absolute inset-0 bg-brand-black/60 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity backdrop-blur-[2px]"
                                             >
-                                                <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M6 18L18 6M6 6l12 12" />
                                                 </svg>
                                             </button>
                                         </div>
                                     ))}
                                     {Array.from({ length: 5 - imagePreviews.length }).map((_, i) => (
-                                        <div key={`empty-${i}`} className="aspect-square rounded-xl bg-zinc-900/10 border border-zinc-900/50" />
+                                        <div key={`empty-${i}`} className="aspect-square bg-white/40 border border-brand-stone/5" />
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="pt-12 xl:pt-0">
+                            <div className="pt-24 border-t border-brand-stone/10">
                                 <button
                                     disabled={loading}
                                     type="submit"
-                                    className="group relative w-full overflow-hidden rounded-2xl py-6 bg-brand-green transition-all duration-500 active:scale-[0.98] disabled:opacity-30"
+                                    className="w-full bg-brand-black text-white font-sans font-medium py-7 rounded-none hover:bg-brand-accent transition-all duration-500 active:scale-[0.98] disabled:opacity-50 shadow-premium uppercase tracking-[0.4em] text-[12px]"
                                 >
-                                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
-                                    <span className="relative z-10 text-brand-black font-space font-bold uppercase tracking-[0.4em] text-xs">
-                                        {loading ? 'Processing Asset...' : 'Register Product'}
-                                    </span>
+                                    {loading ? 'Processing...' : 'Register Piece'}
                                 </button>
-                                <p className="text-[8px] text-zinc-800 text-center uppercase tracking-[0.5em] mt-6 font-space">
-                                    Encryption Protocol Active — Snitch v4.0
+                                <p className="text-[9px] text-brand-stone/40 text-center uppercase tracking-[0.5em] mt-10 font-sans">
+                                    Secure Curation Record — Ledger v4.0
                                 </p>
                             </div>
                         </div>
+
                     </form>
                 </div>
             </div>

@@ -33,12 +33,18 @@ const Login = () => {
         try {
             // The backend expects { username, password, contact }. 
             // We'll pass the identifier to both username and contact fields.
-            await handleLogin({
+            const user = await handleLogin({
                 username: formData.identifier,
                 password: formData.password,
                 contact: formData.identifier
             });
-            navigate('/');
+
+            if (user.role === "buyer") {
+                navigate("/")
+            } else if (user.role == "seller") {
+                navigate("/seller/dashboard")
+            }
+
         } catch (error) {
             console.error("Login attempt failed:", error.response?.data?.message || error.message);
         }
@@ -46,35 +52,39 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-brand-black flex flex-row font-inter">
-            {/* Visual Section - Left Side */}
-            <div className="hidden md:flex md:w-1/3 lg:w-1/2 relative bg-brand-dark">
+        <div className="min-h-screen bg-brand-cream flex flex-row font-sans overflow-hidden">
+            {/* Merged Visual Section */}
+            <div className="hidden lg:flex lg:w-1/3 relative shrink-0 overflow-hidden">
                 <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat grayscale-30 hover:grayscale-0 transition-all duration-1000"
-                    style={{ backgroundImage: "url('/assets/login-bg.png')" }}
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-[2s] ease-out scale-110"
+                    style={{ backgroundImage: "url('/assets/minimal_fashion_bg.png')" }}
                 />
-                <div className="absolute inset-0 bg-linear-to-r from-transparent to-brand-black" />
+                {/* Soft Gradient Merge */}
+                <div className="absolute inset-0 bg-linear-to-r from-brand-black/10 via-brand-cream/40 to-brand-cream" />
 
-                <div className="absolute top-12 left-12 z-10">
-                    <div className="h-0.5 w-12 bg-brand-green mb-4" />
-                    <h2 className="text-4xl font-space font-bold text-white tracking-tight uppercase">
-                        Define <br /> <span className="text-brand-green italic text-5xl">Reality.</span>
-                    </h2>
+                <div className="absolute bottom-32 left-16 z-10 space-y-8">
+                    <div className="h-px w-24 bg-brand-black/20 mb-12" />
+                    <div className="space-y-4">
+                        <span className="text-[10px] font-sans text-brand-stone uppercase tracking-[0.6em]">Protocol</span>
+                        <h2 className="text-6xl xl:text-7xl font-serif text-brand-black leading-tight">
+                            Elevate <br /> <span className="italic text-brand-accent">Standard.</span>
+                        </h2>
+                    </div>
                 </div>
             </div>
 
-            <div className="w-full md:w-2/3 lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12">
-                <div className="w-full max-w-lg space-y-12">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 sm:p-20 bg-brand-cream relative animate-reveal">
+                <div className="w-full max-w-md space-y-16">
                     {/* Header Section */}
-                    <div className="space-y-4">
-                        <div className="text-brand-green text-xs tracking-[0.3em] font-space uppercase">
-                            Marketplace Authentication
+                    <div className="space-y-6">
+                        <div className="text-brand-stone text-[10px] tracking-[0.4em] font-sans uppercase font-medium">
+                            Authorized Access
                         </div>
-                        <h1 className="text-5xl sm:text-7xl font-space font-bold tracking-tight text-white leading-none">
-                            RETAIL <br /><span className="text-brand-green font-bold">GATEWAY.</span>
+                        <h1 className="text-6xl font-serif text-brand-black leading-none">
+                            Entry <br /><span className="italic text-brand-accent">Protocol.</span>
                         </h1>
-                        <p className="text-zinc-500 max-w-sm text-lg leading-relaxed">
-                            Verify your merchant or buyer status to enter the Snitch e-commerce ecosystem.
+                        <p className="text-brand-stone max-w-sm text-sm font-sans leading-relaxed">
+                            Sign in to access your dashboard and manage your curated collections.
                         </p>
                     </div>
 
@@ -89,23 +99,23 @@ const Login = () => {
 
 
                     {/* Login Form */}
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] text-zinc-500 font-space uppercase tracking-widest pl-1">Username or Contact</label>
+                    <form onSubmit={handleSubmit} className="space-y-10">
+                        <div className="space-y-8">
+                            <div className="space-y-3">
+                                <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Identifier</label>
                                 <input
                                     required
                                     type="text"
                                     name="identifier"
                                     value={formData.identifier}
                                     onChange={handleChange}
-                                    placeholder="johndoe7 or +1..."
-                                    className="w-full bg-brand-dark/40 border border-zinc-800/50 focus:border-brand-green/50 text-white p-5 rounded-xl outline-none transition-all placeholder:text-zinc-700"
+                                    placeholder="Username or Contact"
+                                    className="w-full bg-white border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-4 rounded-none outline-none transition-all placeholder:text-brand-stone/40 font-sans"
                                 />
                             </div>
 
-                            <div className="space-y-2 relative">
-                                <label className="text-[10px] text-zinc-500 font-space uppercase tracking-widest pl-1">Access Phrase</label>
+                            <div className="space-y-3 relative">
+                                <label className="text-[10px] text-brand-stone font-sans uppercase tracking-[0.3em] font-semibold pl-1">Access Phrase</label>
                                 <input
                                     required
                                     type={showPassword ? "text" : "password"}
@@ -113,12 +123,12 @@ const Login = () => {
                                     value={formData.password}
                                     onChange={handleChange}
                                     placeholder="••••••••"
-                                    className="w-full bg-brand-dark/40 border border-zinc-800/50 focus:border-brand-green/50 text-white p-5 rounded-xl outline-none transition-all placeholder:text-zinc-700"
+                                    className="w-full bg-white border-b border-brand-stone/30 focus:border-brand-black text-brand-black p-4 rounded-none outline-none transition-all placeholder:text-brand-stone/40 font-sans"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 bottom-5 text-zinc-600 hover:text-brand-green transition-colors font-space text-[10px] tracking-widest"
+                                    className="absolute right-0 bottom-4 text-brand-stone hover:text-brand-black transition-colors font-sans text-[10px] tracking-widest"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
                                     {showPassword ? "HIDE" : "SHOW"}
@@ -126,18 +136,12 @@ const Login = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-xs font-space">
-                            <Link to="/forgot-password" title="Coming soon" className="text-zinc-600 hover:text-zinc-400 tracking-widest uppercase">
-                                Forgot access phrase?
-                            </Link>
-                        </div>
-
                         <button
                             disabled={loading}
                             type="submit"
-                            className="w-full bg-brand-green text-brand-black font-space font-bold py-5 rounded-xl hover:bg-brand-green-matte hover:shadow-[0_0_40px_rgba(148,201,115,0.2)] transition-all transform active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            className="w-full bg-brand-black text-white font-sans font-medium py-5 rounded-none hover:bg-brand-accent transition-all duration-500 active:scale-[0.98] disabled:opacity-50 shadow-premium uppercase tracking-[0.2em] text-[11px]"
                         >
-                            {loading ? 'VERIFYING...' : 'SIGN IN'}
+                            {loading ? 'Authenticating...' : 'Sign In'}
                         </button>
 
                         <div className="relative py-4">
@@ -179,11 +183,11 @@ const Login = () => {
 
                     </form>
 
-                    <div className="text-center pt-4">
-                        <p className="text-zinc-600 font-inter text-sm">
-                            Don't have an account?{" "}
-                            <Link to="/register" className="text-brand-green hover:underline underline-offset-8 decoration-1 tracking-[0.2em] font-space text-[11px] uppercase ml-2 transition-all">
-                                Register
+                    <div className="text-center pt-8">
+                        <p className="text-brand-stone font-sans text-[11px] tracking-wide uppercase">
+                            New curator?{" "}
+                            <Link to="/register" className="text-brand-black hover:text-brand-accent transition-colors font-semibold border-b border-brand-black/20 ml-2">
+                                Apply for Access
                             </Link>
                         </p>
                     </div>
