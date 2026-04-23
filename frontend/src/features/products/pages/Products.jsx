@@ -17,7 +17,6 @@ const Products = () => {
   const sortedProducts = [...products].sort((a, b) => {
     if (sortBy === 'price-low-high') return a.price.amount - b.price.amount;
     if (sortBy === 'price-high-low') return b.price.amount - a.price.amount;
-    if (sortBy === 'alphabetical') return a.title.localeCompare(b.title);
     if (sortBy === 'latest') return new Date(b.createdAt) - new Date(a.createdAt);
     return 0;
   });
@@ -49,7 +48,7 @@ const Products = () => {
                 <option value="latest">Sort By: Latest Arrivals</option>
                 <option value="price-low-high">Price: Low to High</option>
                 <option value="price-high-low">Price: High to Low</option>
-                <option value="alphabetical">Alphabetical (A-Z)</option>
+                
               </select>
               <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
