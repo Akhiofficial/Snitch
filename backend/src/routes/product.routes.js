@@ -1,6 +1,7 @@
 import express from "express";
 import { authenticateSeller } from "../middlewear/auth.middlewear.js";
-import { createProduct, getSellerProducts} from "../controllers/product.controller.js";
+import { createProduct, getSellerProducts, getProductById} from "../controllers/product.controller.js";
+
 import multer from "multer";
 
 
@@ -27,6 +28,8 @@ router.post('/', authenticateSeller, upload.array("images", 6), createProduct)
  * @access Private (Seller)
 */
 router.get('/seller', authenticateSeller, getSellerProducts)
+router.get('/:id', getProductById)
+
 
 
 export default router;
