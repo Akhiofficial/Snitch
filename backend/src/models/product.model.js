@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema({
         currency: { type: String, required: true, default: "INR", enum: ["INR", "USD", "GBP", "EUR"] }
     },
     images: {
-        type: String,
+        type: [String],
         required: true
     },
     stock: { type: Number, required: true },

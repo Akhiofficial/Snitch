@@ -9,8 +9,8 @@ const client = new ImageKit({
 
 export async function uploadFile(fileBuffer, fileName, folder = "/snitch/products") {
     try {
-        const result = await client.upload({
-            file: await ImageKit.io.file(fileBuffer),
+        const result = await client.files.upload({
+            file: fileBuffer.toString("base64"),
             fileName: fileName,
             folder: folder
         });
