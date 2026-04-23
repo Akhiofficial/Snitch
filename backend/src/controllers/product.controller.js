@@ -63,4 +63,18 @@ async function getProductById(req, res) {
     }
 }
 
-export { createProduct, getSellerProducts, getProductById }
+async function getAllProducts(req, res) {
+    try {
+        const products = await productModel.find();
+        
+        res.status(200).json({
+            message: "Products fetched successfully",
+            success: true,
+            products    
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message, success: false });
+    }
+}
+
+export { createProduct, getSellerProducts, getProductById, getAllProducts }

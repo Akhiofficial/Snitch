@@ -6,14 +6,25 @@ import SellerProductView from "../features/products/pages/SellerProductView";
 import SellerDashboard from "../features/products/pages/SellerDashboard";
 import ErrorPage from "./ErrorPage";
 import Protected from "../features/auth/components/Protected";
+import Home from "../features/products/pages/Home";
+import Products from "../features/products/pages/Products";
+import ProductDetail from "../features/products/pages/ProductDetail";
 
 
 
 const routes = createBrowserRouter([
     {
         path: "/",
-        element: <h1>Home</h1>,
+        element: <Home />,
         errorElement: <ErrorPage />
+    },
+    {
+        path: "/products",
+        element: <Products />
+    },
+    {
+        path: "/product/:id",
+        element: <ProductDetail />
     },
 
     {
@@ -47,19 +58,6 @@ const routes = createBrowserRouter([
             }
         ]
     }
-    // {
-    //     path: "/seller/create-product",
-    //     element: <CreateProduct />
-    // },
-    // {
-    //     path: "/seller/view-product/:id",
-    //     element: <SellerProductView />
-    // },
-
-    // {
-    //     path: "/seller/dashboard",
-    //     element: <SellerDashboard />
-    // }
 
 ]);
 
