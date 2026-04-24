@@ -28,8 +28,6 @@ router.post('/', authenticateSeller, upload.array("images", 6), createProduct)
  * @access Private (Seller)
 */
 router.get('/seller', authenticateSeller, getSellerProducts)
-router.get('/:id', getProductById)
-
 
 /**
  * @route GET /api/products
@@ -37,5 +35,12 @@ router.get('/:id', getProductById)
  * @access Public
 */
 router.get('/', getAllProducts)
+
+/**
+ * @route GET /api/products/:id
+ * @desc Get product by ID
+ * @access Public
+ */
+router.get('/:id', getProductById)
 
 export default router;

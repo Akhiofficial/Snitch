@@ -12,7 +12,8 @@ export const useProduct = () => {
             dispatch(setLoading(true));
             const data = await createProduct(formData);
             dispatch(setLoading(false));
-            return data.product;
+            // Backend returns the product object directly at root (not wrapped in { product })
+            return data._id ? data : (data.product ?? null);
         } catch (error) {
             dispatch(setLoading(false));
             dispatch(setError(error.response?.data?.message || error.message));
@@ -48,10 +49,24 @@ export const useProduct = () => {
         }
     }
 
+    async function handleGetProductById(productId) {
+        try {
+            dispatch(setLoading(true));
+            const data = await getProductById(productId);
+            dispatch(setLoading(false));
+            return data.product;
+        } catch (error) {
+            dispatch(setLoading(false));
+            dispatch(setError(error.response?.data?.message || error.message));
+            return null;
+        }
+    }
+
     return {
         handleCreateProduct,
         handleGetSellerProducts,
-        handleGetAllProducts
+        handleGetAllProducts,
+        handleGetProductById
     }
 
 }

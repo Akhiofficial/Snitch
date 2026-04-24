@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { useSelector } from 'react-redux'
-import { useProduct } from '../hook/useProduct'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getProductById } from '../services/product.api'
 

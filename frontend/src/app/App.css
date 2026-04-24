@@ -68,4 +68,14 @@
       transform: translateY(0);
     }
   }
+
+  /* Marquee pause on hover */
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }
