@@ -74,7 +74,7 @@ const SellerInventory = () => {
                         {products.map((product) => (
                             <Link 
                                 key={product._id}
-                                to={`/seller/view-product/${product._id}`}
+                                to={`/seller/product/${product._id}`}
                                 className="group block"
                             >
                                 <div className="aspect-3/4 bg-white overflow-hidden relative transition-all duration-1000 group-hover:shadow-premium">

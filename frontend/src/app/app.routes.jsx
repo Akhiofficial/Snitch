@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router";
 import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import CreateProduct from "../features/products/pages/CreateProduct";
-import SellerProductView from "../features/products/pages/SellerProductView";
+import SellerProductDetails from "../features/products/pages/SellerProductDetail";
 import SellerDashboard from "../features/products/pages/SellerDashboard";
 import ErrorPage from "./ErrorPage";
 import Protected from "../features/auth/components/Protected";
@@ -45,10 +45,10 @@ const routes = createBrowserRouter([
                 > <CreateProduct /> </Protected>
             },
             {
-                path: "view-product/:id",
+                path: "product/:id",
                 element: <Protected 
                 role="seller"
-                > <SellerProductView /> </Protected>
+                > <SellerProductDetails /> </Protected>
             },
             {
                 path: "dashboard",

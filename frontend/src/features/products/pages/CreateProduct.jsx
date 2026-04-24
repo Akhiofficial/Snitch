@@ -170,7 +170,7 @@ const CreateProduct = () => {
 
   const handleViewProduct = () => {
     if (createdProduct?._id) {
-      navigate(`/seller/view-product/${createdProduct._id}`);
+      navigate(`/seller/product/${createdProduct._id}`);
     } else {
       navigate('/seller/inventory');
     }

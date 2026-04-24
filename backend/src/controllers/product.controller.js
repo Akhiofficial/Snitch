@@ -77,4 +77,109 @@ async function getAllProducts(req, res) {
     }
 }
 
-export { createProduct, getSellerProducts, getProductById, getAllProducts }
+// ─── Variant Controllers ──────────────────────────────────────────────────────
+
+async function addVariant(req, res) {
+    try {
+        const { id } = req.params;
+        const seller = req.user;
+
+        const product = await productModel.findOne({ _id: id, seller: seller.id });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found or access denied", success: false });
+        }
+
+        // Handle attributes. Convert to plain object to avoid 'Cast to Map failed' for null-prototype objects.
+        const attributes = req.body.attributes ? JSON.parse(JSON.stringify(req.body.attributes)) : {};
+        
+        if (Object.keys(attributes).length === 0) {
+            return res.status(400).json({ message: "At least one attribute is required", success: false });
+        }
+
+        // Upload variant images (optional)
+        const variantImages = [];
+        if (req.files && req.files.length > 0) {
+            const uploadResults = await Promise.all(
+                req.files.map(async (file) => {
+                    const result = await uploadFile(file.buffer, file.originalname, "/snitch/variants");
+                    return { url: result.url };
+                })
+            );
+            variantImages.push(...uploadResults);
+        }
+
+        const variantData = {
+            attributes,
+            stock: Number(req.body.stock) || 0,
+            images: variantImages
+        };
+
+        // Price is optional, only set if amount is provided and valid
+        if (req.body.priceAmount && !isNaN(Number(req.body.priceAmount)) && Number(req.body.priceAmount) > 0) {
+            variantData.price = {
+                amount: Number(req.body.priceAmount),
+                currency: req.body.priceCurrency || "INR"
+            };
+        }
+
+        product.variants.push(variantData);
+        await product.save();
+
+        res.status(201).json({
+            message: "Variant added successfully",
+            success: true,
+            variant: product.variants[product.variants.length - 1],
+            product
+        });
+
+    } catch (error) {
+        console.error("Add Variant Error:", error);
+        res.status(500).json({ message: error.message, success: false });
+    }
+}
+
+async function updateVariantStock(req, res) {
+    try {
+        const { id, vid } = req.params;
+        const seller = req.user;
+        const { stock } = req.body;
+
+        const product = await productModel.findOne({ _id: id, seller: seller.id });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found", success: false });
+        }
+
+        const variant = product.variants.id(vid);
+        if (!variant) {
+            return res.status(404).json({ message: "Variant not found", success: false });
+        }
+
+        variant.stock = Number(stock);
+        await product.save();
+
+        res.status(200).json({ message: "Stock updated", success: true, variant });
+    } catch (error) {
+        res.status(500).json({ message: error.message, success: false });
+    }
+}
+
+async function deleteVariant(req, res) {
+    try {
+        const { id, vid } = req.params;
+        const seller = req.user;
+
+        const product = await productModel.findOne({ _id: id, seller: seller.id });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found", success: false });
+        }
+
+        product.variants.pull(vid);
+        await product.save();
+
+        res.status(200).json({ message: "Variant removed", success: true });
+    } catch (error) {
+        res.status(500).json({ message: error.message, success: false });
+    }
+}
+
+export { createProduct, getSellerProducts, getProductById, getAllProducts, addVariant, updateVariantStock, deleteVariant }
