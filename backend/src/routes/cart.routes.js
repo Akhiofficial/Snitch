@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticateUser } from "../middlewear/auth.middlewear.js";
-import { addToCart, getCart } from "../controllers/cart.controller.js";
+import { addToCart, getCart, updateCartItemQuantity, removeFromCart } from "../controllers/cart.controller.js";
 import { validateAddToCart } from "../validators/cart.validator.js";
 
 
@@ -24,5 +24,19 @@ router.post('/add/:productId/:variantId', validateAddToCart, authenticateUser, a
  * @returns {Object} - The user's cart
 */
 router.get('/', authenticateUser, getCart)
+
+/**
+ * @route PATCH /api/cart/update/:productId/:variantId
+ * @desc Update cart item quantity
+ * @access Private (User)
+*/
+router.patch('/update/:productId/:variantId', authenticateUser, updateCartItemQuantity)
+
+/**
+ * @route DELETE /api/cart/remove/:productId/:variantId
+ * @desc Remove item from cart
+ * @access Private (User)
+*/
+router.delete('/remove/:productId/:variantId', authenticateUser, removeFromCart)
 
 export default router;

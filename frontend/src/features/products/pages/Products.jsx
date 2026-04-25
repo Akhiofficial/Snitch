@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { useProduct } from '../hook/useProduct'
 import ProductCard from '../components/ProductCard'
 import { motion } from 'framer-motion'
+import Navbar from '../../../app/components/Navbar'
 
 const Products = () => {
   const { products, loading, error } = useSelector(state => state.products);
@@ -28,6 +29,7 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-brand-cream selection:bg-brand-accent selection:text-white pt-32 pb-20 px-6 md:px-10 lg:px-20">
+      <Navbar />
       {/* Header & Filter Section */}
       <div className="max-w-[1800px] mx-auto mb-16">
         <div className="flex flex-col md:flex-row md:items-end justify-between space-y-8 md:space-y-0">

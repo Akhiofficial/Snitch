@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
+import Navbar from '../../../app/components/Navbar'
 import { useProduct } from '../hook/useProduct'
 import { useCart } from '../../cart/hook/useCart'
 
@@ -197,6 +198,7 @@ const ProductDetail = () => {
 
   if (error || !product) return (
     <div className="min-h-screen bg-brand-cream flex flex-col items-center justify-center space-y-8">
+      <Navbar />
       <p className="text-red-500 font-light tracking-widest uppercase text-sm">{error || 'Product not found'}</p>
       <button
         onClick={() => navigate('/products')}
@@ -209,6 +211,7 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-brand-cream selection:bg-brand-accent selection:text-white pt-32 pb-20 px-6 md:px-10 lg:px-20">
+      <Navbar />
       <div className="max-w-[1400px] mx-auto">
         {/* Back Button */}
         <button

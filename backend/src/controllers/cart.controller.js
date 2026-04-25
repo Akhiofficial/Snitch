@@ -107,3 +107,97 @@ export const getCart = async (req, res) => {
         cart
     });
 }
+
+/**
+ * @desc Update cart item quantity
+ * @route PATCH /api/cart/update/:productId/:variantId
+ * @access Private (User)
+ */
+export const updateCartItemQuantity = async (req, res) => {
+    try {
+        const { productId, variantId } = req.params;
+        const { quantity } = req.body;
+
+        if (quantity < 1) {
+            return res.status(400).json({ success: false, message: "Quantity must be at least 1" });
+        }
+
+        const cart = await cartModel.findOne({ user: req.user.id });
+        if (!cart) {
+            return res.status(404).json({ success: false, message: "Cart not found" });
+        }
+
+        const effectiveVariantId = variantId === 'none' ? null : variantId;
+        const itemIndex = cart.items.findIndex(item => 
+            item.product.toString() === productId && 
+            (effectiveVariantId ? item.variant?.toString() === effectiveVariantId : !item.variant)
+        );
+
+        if (itemIndex === -1) {
+            return res.status(404).json({ success: false, message: "Item not found in cart" });
+        }
+
+        // Check stock
+        const product = await productModel.findById(productId);
+        let stock = product.stock;
+        if (effectiveVariantId) {
+            const variant = product.variants.find(v => v._id.toString() === effectiveVariantId);
+            stock = variant.stock;
+        }
+
+        if (quantity > stock) {
+            return res.status(400).json({ success: false, message: `Only ${stock} items left in stock` });
+        }
+
+        cart.items[itemIndex].quantity = quantity;
+        await cart.save();
+
+        await cart.populate("items.product");
+
+        return res.status(200).json({
+            success: true,
+            message: "Cart updated successfully",
+            cart
+        });
+
+    } catch (error) {
+        console.error("Update cart quantity error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
+
+/**
+ * @desc Remove item from cart
+ * @route DELETE /api/cart/remove/:productId/:variantId
+ * @access Private (User)
+ */
+export const removeFromCart = async (req, res) => {
+    try {
+        const { productId, variantId } = req.params;
+
+        const cart = await cartModel.findOne({ user: req.user.id });
+        if (!cart) {
+            return res.status(404).json({ success: false, message: "Cart not found" });
+        }
+
+        const effectiveVariantId = variantId === 'none' ? null : variantId;
+        cart.items = cart.items.filter(item => 
+            !(item.product.toString() === productId && 
+              (effectiveVariantId ? item.variant?.toString() === effectiveVariantId : !item.variant))
+        );
+
+        await cart.save();
+
+        await cart.populate("items.product");
+
+        return res.status(200).json({
+            success: true,
+            message: "Item removed from cart successfully",
+            cart
+        });
+
+    } catch (error) {
+        console.error("Remove from cart error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}

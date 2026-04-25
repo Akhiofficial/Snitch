@@ -1,20 +1,70 @@
 import { useDispatch, useSelector } from "react-redux";
-// Api
-import { addItem } from "../service/cart.api.js";
-// Redux
-import { addItem as addItemToCart } from "../state/cart.slice.js";
-
+import * as cartApi from "../service/cart.api";
+import { setItems, setLoading, setError } from "../state/cart.slice";
 
 export const useCart = () => {
-
     const dispatch = useDispatch();
+    const { items, loading, error } = useSelector((state) => state.cart);
 
-    async function handleAddItem({productId, variantId}) {
-
-        const data = await addItem({productId, variantId});
-
-        return data;
+    async function handleFetchCart() {
+        dispatch(setLoading(true));
+        try {
+            const data = await cartApi.getCart();
+            dispatch(setItems(data.cart.items));
+            return data.cart;
+        } catch (error) {
+            const message = error.response?.data?.message || "Failed to fetch cart";
+            dispatch(setError(message));
+            throw error;
+        } finally {
+            dispatch(setLoading(false));
+        }
     }
 
-    return { handleAddItem }
+    async function handleAddItem({ productId, variantId }) {
+        dispatch(setLoading(true));
+        try {
+            const data = await cartApi.addItem({ productId, variantId });
+            // Refresh cart after adding
+            await handleFetchCart();
+            return data;
+        } catch (error) {
+            console.error("Add to cart error:", error);
+            throw error;
+        } finally {
+            dispatch(setLoading(false));
+        }
+    }
+
+    async function handleUpdateQuantity({ productId, variantId, quantity }) {
+        try {
+            const data = await cartApi.updateQuantity({ productId, variantId, quantity });
+            dispatch(setItems(data.cart.items));
+            return data.cart;
+        } catch (error) {
+            console.error("Update quantity error:", error);
+            throw error;
+        }
+    }
+
+    async function handleRemoveItem({ productId, variantId }) {
+        try {
+            const data = await cartApi.removeItem({ productId, variantId });
+            dispatch(setItems(data.cart.items));
+            return data.cart;
+        } catch (error) {
+            console.error("Remove item error:", error);
+            throw error;
+        }
+    }
+
+    return { 
+        items, 
+        loading, 
+        error, 
+        handleAddItem, 
+        handleFetchCart, 
+        handleUpdateQuantity, 
+        handleRemoveItem 
+    }
 }

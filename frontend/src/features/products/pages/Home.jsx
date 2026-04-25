@@ -4,6 +4,7 @@ import { useProduct } from '../hook/useProduct'
 import ProductCard from '../components/ProductCard'
 import { motion, useScroll, useTransform, useInView, useAnimationControls } from 'framer-motion'
 import { Link } from 'react-router'
+import Navbar from '../../../app/components/Navbar'
 
 /* ─── Animation Variants ─────────────────────────────────────────────── */
 const fadeUp = {
@@ -145,34 +146,7 @@ const Home = () => {
     <div className="min-h-screen bg-brand-cream selection:bg-brand-black selection:text-brand-cream overflow-x-hidden">
 
       {/* ── Nav ── */}
-      <nav className="fixed top-0 left-0 w-full z-50 px-8 md:px-14 py-7 flex justify-between items-center">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="text-white text-[22px] font-serif tracking-tighter mix-blend-difference"
-        >
-          SNITCH
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="flex items-center gap-8"
-        >
-          {user ? (
-            <span className="text-[10px] uppercase tracking-[0.3em] text-white mix-blend-difference font-medium">
-              {user.username || user.name || 'Account'}
-            </span>
-          ) : (
-            <div className="flex items-center gap-7">
-              <a href="/login" className="text-[10px] uppercase tracking-[0.3em] text-white mix-blend-difference hover:opacity-60 transition-opacity">Login</a>
-              <a href="/register" className="text-[10px] uppercase tracking-[0.3em] text-white mix-blend-difference hover:opacity-60 transition-opacity">Register</a>
-            </div>
-          )}
-        </motion.div>
-      </nav>
+      <Navbar />
 
       {/* ── Hero ── */}
       <section ref={heroRef} className="relative h-screen w-full overflow-hidden flex items-end">
