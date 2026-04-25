@@ -53,11 +53,39 @@ export async function updateVariantStock(productId, variantId, stock) {
 }
 
 /**
+ * Update all details of a specific variant.
+ */
+export async function updateProductVariant(productId, variantId, formData) {
+    const response = await productApiInstance.put(`/${productId}/variants/${variantId}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+}
+
+/**
  * Delete a specific variant from a product.
  * @param {string} productId
  * @param {string} variantId
  */
 export async function deleteProductVariant(productId, variantId) {
     const response = await productApiInstance.delete(`/${productId}/variants/${variantId}`);
+    return response.data;
+}
+
+/**
+ * Update main product details.
+ */
+export async function updateProduct(id, formData) {
+    const response = await productApiInstance.patch(`/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+}
+
+/**
+ * Delete/Withdraw a product.
+ */
+export async function deleteProduct(id) {
+    const response = await productApiInstance.delete(`/${id}`);
     return response.data;
 }

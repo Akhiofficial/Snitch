@@ -1,15 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
-import { getProductById, getSellerProducts, addProductVariant, updateVariantStock, deleteProductVariant } from '../services/product.api';
-import { setLoading, setError } from '../state/product.slice';
+import { useProduct } from '../hook/useProduct';
 
 
 const SellerProductView = () => {
     
     const { id } = useParams();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { loading, error: reduxError } = useSelector(state => state.products);
+    const { 
+        handleGetProductById, 
+        handleGetSellerProducts, 
+        handleUpdateProduct,
+        handleDeleteProduct,
+        handleRegisterVariant: hookHandleRegisterVariant,
+        handleUpdateVariantStock,
+        handleDeleteVariant: hookHandleDeleteVariant,
+        handleUpdateVariant
+    } = useProduct();
+
     const [product, setProduct] = useState(null);
     const [activeImage, setActiveImage] = useState(0);
     const [allProducts, setAllProducts] = useState([]);
@@ -30,21 +41,53 @@ const SellerProductView = () => {
     // Inline Editing State
     const [editingVariantId, setEditingVariantId] = useState(null);
     const [editStockValue, setEditStockValue] = useState(0);
+    // Main Product Editing State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [mainEditForm, setMainEditForm] = useState({
+        title: '',
+        description: '',
+        priceAmount: '',
+        priceCurrency: 'INR',
+        stock: 0,
+        sizes: '', // New field
+        newImages: []
+    });
+    const [mainEditPreviews, setMainEditPreviews] = useState([]);
+
+    // Variant Edit State
+    const [isVariantEditModalOpen, setIsVariantEditModalOpen] = useState(false);
+    const [currentEditingVariantId, setCurrentEditingVariantId] = useState(null);
+    const [variantEditForm, setVariantEditForm] = useState({
+        priceAmount: '',
+        priceCurrency: 'INR',
+        stock: 0,
+        attributes: {},
+        newImages: []
+    });
+    const [variantEditPreviews, setVariantEditPreviews] = useState([]);
 
     const fetchProductData = async () => {
-        dispatch(setLoading(true));
-        dispatch(setError(null));
         try {
-            const [productData, listData] = await Promise.all([
-                getProductById(id),
-                getSellerProducts()
+            const [p, products] = await Promise.all([
+                handleGetProductById(id),
+                handleGetSellerProducts()
             ]);
-            setProduct(productData.product);
-            setAllProducts(listData.products || []);
+            if (p) {
+                setProduct(p);
+                setMainEditForm({
+                    title: p.title,
+                    description: p.description,
+                    priceAmount: p.price?.amount || '',
+                    priceCurrency: p.price?.currency || 'INR',
+                    stock: p.stock || 0,
+                    sizes: p.sizes?.join(', ') || '',
+                    newImages: []
+                });
+            }
+            setAllProducts(products || []);
         } catch (err) {
-            dispatch(setError(err.response?.data?.message || err.message));
-        } finally {
-            dispatch(setLoading(false));
+            // Error is handled by the hook
+            console.error("Fetch Data Error:", err);
         }
     };
 
@@ -85,7 +128,7 @@ const SellerProductView = () => {
         setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleRegisterVariant = async (e) => {
+    const onRegisterVariant = async (e) => {
         e.preventDefault();
         if (Object.keys(attributes).length === 0) {
             setVariantError("At least one attribute (e.g., Color or Size) is required");
@@ -114,7 +157,7 @@ const SellerProductView = () => {
                 formData.append('variantImages', file);
             });
 
-            await addProductVariant(id, formData);
+            await hookHandleRegisterVariant(id, formData);
             
             // Reset form
             setAttributes({});
@@ -136,7 +179,7 @@ const SellerProductView = () => {
 
     const handleUpdateStock = async (vid) => {
         try {
-            await updateVariantStock(id, vid, editStockValue);
+            await handleUpdateVariantStock(id, vid, editStockValue);
             setEditingVariantId(null);
             fetchProductData();
         } catch (err) {
@@ -147,11 +190,99 @@ const SellerProductView = () => {
     const handleDeleteVariant = async (vid) => {
         if (!window.confirm("Are you sure you want to delete this variant?")) return;
         try {
-            await deleteProductVariant(id, vid);
+            await hookHandleDeleteVariant(id, vid);
             fetchProductData();
         } catch (err) {
             alert(err.response?.data?.message || err.message);
         }
+    };
+
+    const handleMainUpdate = async (e) => {
+        e.preventDefault();
+        setVariantActionLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append('title', mainEditForm.title);
+            formData.append('description', mainEditForm.description);
+            formData.append('priceAmount', mainEditForm.priceAmount);
+            formData.append('priceCurrency', mainEditForm.priceCurrency);
+            formData.append('stock', mainEditForm.stock);
+            formData.append('sizes', mainEditForm.sizes);
+            
+            mainEditForm.newImages.forEach(file => {
+                formData.append('images', file);
+            });
+
+            await handleUpdateProduct(id, formData);
+            setIsEditModalOpen(false);
+            fetchProductData();
+        } catch (err) {
+            setVariantError(err.response?.data?.message || err.message);
+        } finally {
+            setVariantActionLoading(false);
+        }
+    };
+
+    const handleOpenVariantEdit = (v) => {
+        setCurrentEditingVariantId(v._id);
+        setVariantEditForm({
+            priceAmount: v.price?.amount || '',
+            priceCurrency: v.price?.currency || 'INR',
+            stock: v.stock || 0,
+            attributes: { ...v.attributes },
+            newImages: []
+        });
+        setVariantEditPreviews([]);
+        setIsVariantEditModalOpen(true);
+    };
+
+    const handleVariantEditSubmit = async (e) => {
+        e.preventDefault();
+        setVariantActionLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append('stock', variantEditForm.stock);
+            if (variantEditForm.priceAmount) {
+                formData.append('priceAmount', variantEditForm.priceAmount);
+                formData.append('priceCurrency', variantEditForm.priceCurrency);
+            }
+            
+            // Attributes
+            Object.entries(variantEditForm.attributes).forEach(([key, val]) => {
+                formData.append(`attributes[${key}]`, val);
+            });
+
+            // Images
+            variantEditForm.newImages.forEach(file => {
+                formData.append('variantImages', file);
+            });
+
+            await handleUpdateVariant(id, currentEditingVariantId, formData);
+            setIsVariantEditModalOpen(false);
+            fetchProductData();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setVariantActionLoading(false);
+        }
+    };
+
+    const handleWithdraw = async () => {
+        if (!window.confirm("ARE YOU ABSOLUTELY SURE? This will remove this piece from all collections permanently.")) return;
+        try {
+            await handleDeleteProduct(id);
+            // Navigate back to dashboard
+            navigate('/seller/dashboard');
+        } catch (err) {
+            alert(err.response?.data?.message || err.message);
+        }
+    };
+
+    const handleMainImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        setMainEditForm(prev => ({ ...prev, newImages: [...prev.newImages, ...files] }));
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setMainEditPreviews(prev => [...prev, ...newPreviews]);
     };
 
     if (loading && !product) return (
@@ -251,10 +382,16 @@ const SellerProductView = () => {
                             {/* Actions */}
                             <div className="pt-8 space-y-8">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                                    <button className="bg-brand-black text-white font-sans font-medium py-6 rounded-none hover:bg-brand-accent transition-all duration-500 active:scale-[0.98] uppercase tracking-[0.3em] text-[10px] shadow-premium">
+                                    <button 
+                                        onClick={() => setIsEditModalOpen(true)}
+                                        className="bg-brand-black text-white font-sans font-medium py-6 rounded-none hover:bg-brand-accent transition-all duration-500 active:scale-[0.98] uppercase tracking-[0.3em] text-[10px] shadow-premium"
+                                    >
                                         Edit Curation
                                     </button>
-                                    <button className="border border-brand-stone/20 text-brand-stone hover:text-red-400 hover:border-red-100 font-sans font-medium py-6 rounded-none transition-all duration-500 active:scale-[0.98] uppercase tracking-[0.3em] text-[10px]">
+                                    <button 
+                                        onClick={handleWithdraw}
+                                        className="border border-brand-stone/20 text-brand-stone hover:text-red-400 hover:border-red-100 font-sans font-medium py-6 rounded-none transition-all duration-500 active:scale-[0.98] uppercase tracking-[0.3em] text-[10px]"
+                                    >
                                         Withdraw Piece
                                     </button>
                                 </div>
@@ -282,7 +419,7 @@ const SellerProductView = () => {
                                 <div className="h-px bg-brand-stone/10 w-full" />
                             </div>
 
-                            <form onSubmit={handleRegisterVariant} className="space-y-10">
+                            <form onSubmit={onRegisterVariant} className="space-y-10">
                                 {/* Attribute Builder */}
                                 <div className="space-y-6">
                                     <div className="flex gap-4">
@@ -483,7 +620,13 @@ const SellerProductView = () => {
                                                             </div>
                                                         )}
                                                     </td>
-                                                    <td className="py-8 text-right">
+                                                    <td className="py-8 text-right space-x-4">
+                                                        <button 
+                                                            onClick={() => handleOpenVariantEdit(v)}
+                                                            className="text-[10px] text-brand-black hover:text-brand-accent uppercase tracking-widest font-bold transition-colors"
+                                                        >
+                                                            Edit
+                                                        </button>
                                                         <button 
                                                             onClick={() => handleDeleteVariant(v._id)}
                                                             className="text-[10px] text-brand-stone hover:text-red-500 uppercase tracking-widest font-bold transition-colors"
@@ -549,6 +692,242 @@ const SellerProductView = () => {
                     </div>
                 </div>
             </div>
+
+            {/* EDIT MODAL */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-12">
+                    <div className="absolute inset-0 bg-brand-black/90 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)} />
+                    <div className="relative w-full max-w-4xl bg-brand-cream shadow-2xl overflow-y-auto max-h-[90vh] animate-reveal">
+                        <div className="p-8 sm:p-16 space-y-12">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-4xl font-serif italic text-brand-black">Refine <span className="text-brand-accent">Curation.</span></h2>
+                                <button onClick={() => setIsEditModalOpen(false)} className="text-brand-stone hover:text-brand-black text-xl">×</button>
+                            </div>
+
+                            <form onSubmit={handleMainUpdate} className="space-y-12">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                    <div className="space-y-8">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold">Piece Title</label>
+                                            <input 
+                                                type="text" 
+                                                value={mainEditForm.title}
+                                                onChange={(e) => setMainEditForm({ ...mainEditForm, title: e.target.value })}
+                                                className="w-full bg-transparent border-b border-brand-stone/20 py-4 font-serif text-2xl focus:border-brand-black outline-none"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold">The Narrative</label>
+                                            <textarea 
+                                                rows="4"
+                                                value={mainEditForm.description}
+                                                onChange={(e) => setMainEditForm({ ...mainEditForm, description: e.target.value })}
+                                                className="w-full bg-transparent border-b border-brand-stone/20 py-4 font-sans text-sm focus:border-brand-black outline-none resize-none"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-8">
+                                        <div className="grid grid-cols-2 gap-8">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold">Price</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={mainEditForm.priceAmount}
+                                                    onChange={(e) => setMainEditForm({ ...mainEditForm, priceAmount: e.target.value })}
+                                                    className="w-full bg-transparent border-b border-brand-stone/20 py-4 font-serif text-2xl focus:border-brand-black outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold">Currency</label>
+                                                <select 
+                                                    value={mainEditForm.priceCurrency}
+                                                    onChange={(e) => setMainEditForm({ ...mainEditForm, priceCurrency: e.target.value })}
+                                                    className="w-full bg-transparent border-b border-brand-stone/20 py-4 font-sans text-sm outline-none cursor-pointer"
+                                                >
+                                                    <option value="INR">INR</option>
+                                                    <option value="USD">USD</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold">Total Stock</label>
+                                            <input 
+                                                type="number" 
+                                                value={mainEditForm.stock}
+                                                onChange={(e) => setMainEditForm({ ...mainEditForm, stock: e.target.value })}
+                                                className="w-full bg-transparent border-b border-brand-stone/20 py-4 font-serif text-2xl focus:border-brand-black outline-none"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold">Available Sizes</label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="e.g. S, M, L, XL"
+                                                value={mainEditForm.sizes}
+                                                onChange={(e) => setMainEditForm({ ...mainEditForm, sizes: e.target.value })}
+                                                className="w-full bg-transparent border-b border-brand-stone/20 py-4 font-serif text-2xl focus:border-brand-black outline-none"
+                                            />
+                                            <p className="text-[8px] text-brand-stone uppercase tracking-widest">Separate sizes with commas</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold block">Replace Visuals (Optional)</label>
+                                    <div className="flex flex-wrap gap-4">
+                                        {mainEditPreviews.map((url, idx) => (
+                                            <div key={idx} className="w-24 h-32 bg-white border border-brand-stone/10 shadow-premium">
+                                                <img src={url} alt="New Preview" className="w-full h-full object-cover" />
+                                            </div>
+                                        ))}
+                                        <label className="w-24 h-32 flex flex-col items-center justify-center border-2 border-dashed border-brand-stone/20 cursor-pointer hover:border-brand-black transition-all">
+                                            <input type="file" multiple onChange={handleMainImageChange} className="hidden" />
+                                            <span className="text-2xl font-light text-brand-stone">+</span>
+                                            <span className="text-[8px] uppercase tracking-widest text-brand-stone mt-2">Add Gallery</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="pt-12">
+                                    <button 
+                                        type="submit"
+                                        disabled={variantActionLoading}
+                                        className="w-full bg-brand-black text-white font-sans py-6 uppercase tracking-[0.4em] text-[10px] font-bold hover:bg-brand-accent transition-all duration-700 shadow-premium disabled:opacity-50"
+                                    >
+                                        {variantActionLoading ? 'Synchronizing...' : 'Save Curation Changes'}
+                                    </button>
+
+                                    <button 
+                                        type="button"
+                                        onClick={handleWithdraw}
+                                        className="w-full bg-transparent border border-red-500/20 text-red-500/60 font-sans py-4 uppercase tracking-[0.4em] text-[8px] font-bold hover:bg-red-500 hover:text-white transition-all duration-700 mt-4"
+                                    >
+                                        Withdraw Piece from Collection
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* VARIANT EDIT MODAL */}
+            {isVariantEditModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-12">
+                    <div className="absolute inset-0 bg-brand-black/90 backdrop-blur-sm" onClick={() => setIsVariantEditModalOpen(false)} />
+                    <div className="relative w-full max-w-4xl bg-brand-cream shadow-2xl overflow-y-auto max-h-[90vh] animate-reveal">
+                        <div className="p-8 sm:p-16 space-y-12">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-4xl font-serif italic text-brand-black">Edit <span className="text-brand-accent">Variant.</span></h2>
+                                <button onClick={() => setIsVariantEditModalOpen(false)} className="text-brand-stone hover:text-brand-black text-xl">×</button>
+                            </div>
+
+                            <form onSubmit={handleVariantEditSubmit} className="space-y-12">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                    <div className="space-y-8">
+                                        <div className="grid grid-cols-2 gap-8">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold">Price Override</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={variantEditForm.priceAmount}
+                                                    onChange={(e) => setVariantEditForm({ ...variantEditForm, priceAmount: e.target.value })}
+                                                    className="w-full bg-transparent border-b border-brand-stone/20 py-4 font-serif text-2xl focus:border-brand-black outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold">Currency</label>
+                                                <select 
+                                                    value={variantEditForm.priceCurrency}
+                                                    onChange={(e) => setVariantEditForm({ ...variantEditForm, priceCurrency: e.target.value })}
+                                                    className="w-full bg-transparent border-b border-brand-stone/20 py-4 font-sans text-sm outline-none cursor-pointer"
+                                                >
+                                                    <option value="INR">INR</option>
+                                                    <option value="USD">USD</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold">Variant Stock</label>
+                                            <input 
+                                                type="number" 
+                                                value={variantEditForm.stock}
+                                                onChange={(e) => setVariantEditForm({ ...variantEditForm, stock: e.target.value })}
+                                                className="w-full bg-transparent border-b border-brand-stone/20 py-4 font-serif text-2xl focus:border-brand-black outline-none"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-8">
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold block">Attributes</label>
+                                            {Object.entries(variantEditForm.attributes).map(([key, val], idx) => (
+                                                <div key={idx} className="flex gap-4">
+                                                    <input 
+                                                        type="text" 
+                                                        value={key}
+                                                        readOnly
+                                                        className="flex-1 bg-transparent border-b border-brand-stone/10 py-2 font-sans text-xs text-brand-stone outline-none"
+                                                    />
+                                                    <input 
+                                                        type="text" 
+                                                        value={val}
+                                                        onChange={(e) => {
+                                                            const newAttrs = { ...variantEditForm.attributes, [key]: e.target.value };
+                                                            setVariantEditForm({ ...variantEditForm, attributes: newAttrs });
+                                                        }}
+                                                        className="flex-1 bg-transparent border-b border-brand-stone/20 py-2 font-sans text-sm focus:border-brand-black outline-none"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <label className="text-[10px] uppercase tracking-widest text-brand-stone font-bold block">Update Variant Visuals</label>
+                                    <div className="flex flex-wrap gap-4">
+                                        {variantEditPreviews.map((url, idx) => (
+                                            <div key={idx} className="w-24 h-32 bg-white border border-brand-stone/10 shadow-premium">
+                                                <img src={url} alt="New Preview" className="w-full h-full object-cover" />
+                                            </div>
+                                        ))}
+                                        <label className="w-24 h-32 flex flex-col items-center justify-center border-2 border-dashed border-brand-stone/20 cursor-pointer hover:border-brand-black transition-all">
+                                            <input 
+                                                type="file" 
+                                                multiple 
+                                                onChange={(e) => {
+                                                    const files = Array.from(e.target.files);
+                                                    setVariantEditForm({ ...variantEditForm, newImages: files });
+                                                    setVariantEditPreviews(files.map(f => URL.createObjectURL(f)));
+                                                }} 
+                                                className="hidden" 
+                                            />
+                                            <span className="text-2xl font-light text-brand-stone">+</span>
+                                            <span className="text-[8px] uppercase tracking-widest text-brand-stone mt-2">Replace Gallery</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="pt-12">
+                                    <button 
+                                        type="submit"
+                                        disabled={variantActionLoading}
+                                        className="w-full bg-brand-black text-white font-sans py-6 uppercase tracking-[0.4em] text-[10px] font-bold hover:bg-brand-accent transition-all duration-700 shadow-premium disabled:opacity-50"
+                                    >
+                                        {variantActionLoading ? 'Synchronizing...' : 'Update Variant'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

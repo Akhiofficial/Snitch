@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticateSeller } from "../middlewear/auth.middlewear.js";
-import { createProduct, getSellerProducts, getProductById, getAllProducts, addVariant, updateVariantStock, deleteVariant } from "../controllers/product.controller.js";
+import { createProduct, getSellerProducts, getProductById, getAllProducts, addVariant, updateVariantStock, deleteVariant, updateProduct, deleteProduct, updateVariant } from "../controllers/product.controller.js";
 
 import multer from "multer";
 
@@ -60,10 +60,30 @@ router.post('/:id/variants', authenticateSeller, upload.array("variantImages", 5
 router.patch('/:id/variants/:vid', authenticateSeller, updateVariantStock)
 
 /**
+ * @route PUT /api/products/:id/variants/:vid
+ * @desc Update all details of a specific variant
+ * @access Private (Seller)
+ */
+router.put('/:id/variants/:vid', authenticateSeller, upload.array("variantImages", 5), updateVariant)
+
+/**
  * @route DELETE /api/products/:id/variants/:vid
  * @desc Delete a specific variant
  * @access Private (Seller)
  */
 router.delete('/:id/variants/:vid', authenticateSeller, deleteVariant)
+/**
+ * @route PATCH /api/products/:id
+ * @desc Update product details
+ * @access Private (Seller)
+ */
+router.patch('/:id', authenticateSeller, upload.array("images", 6), updateProduct)
+
+/**
+ * @route DELETE /api/products/:id
+ * @desc Delete/Withdraw product
+ * @access Private (Seller)
+ */
+router.delete('/:id', authenticateSeller, deleteProduct)
 
 export default router;

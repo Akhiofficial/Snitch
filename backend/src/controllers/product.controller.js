@@ -3,7 +3,7 @@ import { uploadFile } from "../services/storage.service.js";
 
 
 async function createProduct(req, res) {
-    const { title, description, priceAmount, priceCurrency, stock } = req.body;
+    const { title, description, priceAmount, priceCurrency, stock, sizes } = req.body;
     const seller = req.user;
     const image = await Promise.all(req.files.map(async (file) => {
         const result = await uploadFile(file.buffer, file.originalname);
@@ -19,6 +19,7 @@ async function createProduct(req, res) {
                 currency: priceCurrency || "INR",
             },
             stock: Number(stock),
+            sizes: sizes ? (Array.isArray(sizes) ? sizes : sizes.split(',').map(s => s.trim())) : [],
             seller: seller.id,
             images: image
         });
@@ -182,4 +183,109 @@ async function deleteVariant(req, res) {
     }
 }
 
-export { createProduct, getSellerProducts, getProductById, getAllProducts, addVariant, updateVariantStock, deleteVariant }
+async function updateProduct(req, res) {
+    try {
+        const { id } = req.params;
+        const seller = req.user;
+        const { title, description, priceAmount, priceCurrency, stock, sizes } = req.body;
+
+        const product = await productModel.findOne({ _id: id, seller: seller.id });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found", success: false });
+        }
+
+        if (title) product.title = title;
+        if (description) product.description = description;
+        if (priceAmount) product.price.amount = Number(priceAmount);
+        if (priceCurrency) product.price.currency = priceCurrency;
+        if (stock !== undefined) product.stock = Number(stock);
+        if (sizes) {
+            product.sizes = Array.isArray(sizes) ? sizes : sizes.split(',').map(s => s.trim());
+        }
+
+        if (req.files && req.files.length > 0) {
+            const newImages = await Promise.all(req.files.map(async (file) => {
+                const result = await uploadFile(file.buffer, file.originalname);
+                return result.url;
+            }));
+            // Replace images if provided
+            product.images = newImages;
+        }
+
+        await product.save();
+        res.status(200).json({ message: "Product updated successfully", success: true, product });
+    } catch (error) {
+        res.status(500).json({ message: error.message, success: false });
+    }
+}
+
+async function deleteProduct(req, res) {
+    try {
+        const { id } = req.params;
+        const seller = req.user;
+
+        const product = await productModel.findOneAndDelete({ _id: id, seller: seller.id });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found", success: false });
+        }
+
+        res.status(200).json({ message: "Product withdrawn successfully", success: true });
+    } catch (error) {
+        res.status(500).json({ message: error.message, success: false });
+    }
+}
+
+async function updateVariant(req, res) {
+    try {
+        const { id, vid } = req.params;
+        const seller = req.user;
+        const { stock, priceAmount, priceCurrency } = req.body;
+        
+        const product = await productModel.findOne({ _id: id, seller: seller.id });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found", success: false });
+        }
+
+        const variant = product.variants.id(vid);
+        if (!variant) {
+            return res.status(404).json({ message: "Variant not found", success: false });
+        }
+
+        if (stock !== undefined) variant.stock = Number(stock);
+        
+        if (priceAmount && !isNaN(Number(priceAmount))) {
+            variant.price = {
+                amount: Number(priceAmount),
+                currency: priceCurrency || "INR"
+            };
+        }
+
+        // Attributes
+        if (req.body.attributes) {
+            // Attributes are usually passed as attributes[Color]=Red
+            // If they are passed as a JSON string, we parse them
+            const attributes = typeof req.body.attributes === 'string' 
+                ? JSON.parse(req.body.attributes) 
+                : JSON.parse(JSON.stringify(req.body.attributes));
+            variant.attributes = attributes;
+        }
+
+        // Images
+        if (req.files && req.files.length > 0) {
+            const newImages = await Promise.all(
+                req.files.map(async (file) => {
+                    const result = await uploadFile(file.buffer, file.originalname, "/snitch/variants");
+                    return { url: result.url };
+                })
+            );
+            variant.images = newImages;
+        }
+
+        await product.save();
+        res.status(200).json({ message: "Variant updated successfully", success: true, variant });
+    } catch (error) {
+        res.status(500).json({ message: error.message, success: false });
+    }
+}
+
+export { createProduct, getSellerProducts, getProductById, getAllProducts, addVariant, updateVariantStock, deleteVariant, updateProduct, deleteProduct, updateVariant }

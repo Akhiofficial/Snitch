@@ -1,24 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
-import { getSellerProducts } from '../services/product.api';
-import { setLoading, setError } from '../state/product.slice';
+import { useProduct } from '../hook/useProduct';
 
 const SellerInventory = () => {
     const dispatch = useDispatch();
     const { loading, error } = useSelector(state => state.products);
+    const { handleGetSellerProducts } = useProduct();
     const [products, setProducts] = useState([]);
 
     useEffect(() => {
         const fetchProducts = async () => {
-            try {
-                const data = await getSellerProducts();
-                setProducts(data.products || []);
-            } catch (err) {
-                dispatch(setError(err.response?.data?.message || err.message));
-            } finally {
-                dispatch(setLoading(false));
-            }
+            const data = await handleGetSellerProducts();
+            if (data) setProducts(data);
         };
 
         fetchProducts();
