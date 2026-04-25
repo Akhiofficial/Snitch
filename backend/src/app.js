@@ -3,10 +3,12 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
+import productRoutes from './routes/product.routes.js';
+import cartRoutes from './routes/cart.routes.js';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { config } from './config/config.js';
-import productRoutes from './routes/product.routes.js';
+
 
 const app = express();
 
@@ -29,7 +31,7 @@ passport.use(new GoogleStrategy({
    clientID: config.GOOGLE_CLIENT_ID,
    clientSecret: config.GOOGLE_CLIENT_SECRET,
    callbackURL: "/api/auth/google/callback"
-}, (accessToken, refreshToken, profile, done) => {
+}, async (accessToken, refreshToken, profile, done) => {
    return done(null, profile);
 }));
 
@@ -42,6 +44,7 @@ app.get('/', (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
 
 
 export default app;
