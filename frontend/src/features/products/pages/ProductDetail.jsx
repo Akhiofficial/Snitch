@@ -18,8 +18,26 @@ const ProductDetail = () => {
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [matchedVariant, setMatchedVariant] = useState(null);
 
+  // Success Notification State
+  const [showSuccess, setShowSuccess] = useState(false);
+
   // Cart
   const { handleAddItem } = useCart();
+
+  const onAddToBag = async () => {
+    try {
+      const data = await handleAddItem({
+        productId: product._id,
+        variantId: matchedVariant?._id
+      });
+      if (data.success) {
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.error("Failed to add to bag:", err);
+    }
+  };
 
   useEffect(() => {
     async function fetchProduct() {
@@ -380,10 +398,7 @@ const ProductDetail = () => {
             <div className="space-y-4 pt-10">
               <button
                 disabled={(matchedVariant ? matchedVariant.stock : product.stock) === 0}
-                onClick={()=>{ handleAddItem({
-                  productId: product._id,
-                  variantId: matchedVariant?._id
-                }) }}
+                onClick={onAddToBag}
                 className="w-full bg-brand-black text-white py-5 text-[11px] uppercase tracking-[0.4em] font-semibold hover:bg-brand-accent transition-colors duration-500 disabled:bg-brand-stone/40 disabled:cursor-not-allowed"
               >
                 {(matchedVariant ? matchedVariant.stock : product.stock) > 0
@@ -419,6 +434,23 @@ const ProductDetail = () => {
 
         </div>
       </div>
+      {/* Success Notification */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 50 }}
+            className="fixed top-10 right-10 z-50 bg-brand-black text-white px-8 py-4 rounded-lg shadow-2xl flex items-center space-x-4 border border-white/10 backdrop-blur-md"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-[0.3em] font-bold">Added to bag</span>
+              <span className="text-[9px] text-brand-stone uppercase tracking-wide">{product.title}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

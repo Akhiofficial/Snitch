@@ -32,7 +32,8 @@ export const addToCart = async (req, res) => {
 
         if (variantId !== 'none') {
             const variant = product.variants.find(v => v._id.toString() === variantId);
-            price = variant.price || product.price;
+            // Use variant price only if it has an amount, otherwise fallback to product price
+            price = (variant.price && variant.price.amount) ? variant.price : product.price;
             stock = variant.stock;
             effectiveVariantId = variantId;
         }
