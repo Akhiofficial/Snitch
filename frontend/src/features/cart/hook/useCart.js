@@ -1,16 +1,16 @@
 import { useDispatch, useSelector } from "react-redux";
 import * as cartApi from "../service/cart.api";
-import { setItems, setLoading, setError } from "../state/cart.slice";
+import { setCartData, setLoading, setError } from "../state/cart.slice";
 
 export const useCart = () => {
     const dispatch = useDispatch();
-    const { items, loading, error } = useSelector((state) => state.cart);
+    const { items, totalAmount, totalItems, loading, error } = useSelector((state) => state.cart);
 
     async function handleFetchCart() {
         dispatch(setLoading(true));
         try {
             const data = await cartApi.getCart();
-            dispatch(setItems(data.cart.items));
+            dispatch(setCartData(data.cart));
             return data.cart;
         } catch (error) {
             const message = error.response?.data?.message || "Failed to fetch cart";
@@ -39,7 +39,7 @@ export const useCart = () => {
     async function handleUpdateQuantity({ productId, variantId, quantity }) {
         try {
             const data = await cartApi.updateQuantity({ productId, variantId, quantity });
-            dispatch(setItems(data.cart.items));
+            dispatch(setCartData(data.cart));
             return data.cart;
         } catch (error) {
             console.error("Update quantity error:", error);
@@ -50,7 +50,7 @@ export const useCart = () => {
     async function handleRemoveItem({ productId, variantId }) {
         try {
             const data = await cartApi.removeItem({ productId, variantId });
-            dispatch(setItems(data.cart.items));
+            dispatch(setCartData(data.cart));
             return data.cart;
         } catch (error) {
             console.error("Remove item error:", error);
@@ -60,6 +60,8 @@ export const useCart = () => {
 
     return { 
         items, 
+        totalAmount,
+        totalItems,
         loading, 
         error, 
         handleAddItem, 
