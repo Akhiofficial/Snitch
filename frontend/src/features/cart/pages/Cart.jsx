@@ -23,12 +23,17 @@ const stagger = {
 const Cart = () => {
   const navigate = useNavigate()
   const user = useSelector(state => state.auth.user)
-  const { items, totalAmount, totalItems, loading, handleFetchCart, handleUpdateQuantity, handleRemoveItem } = useCart()
+  const { items, loading, handleFetchCart, handleUpdateQuantity, handleRemoveItem } = useCart()
 
   useEffect(() => {
     handleFetchCart()
   }, [])
 
+  const calculateSubtotal = () => {
+    return items.reduce((total, item) => total + (item.price.amount * item.quantity), 0)
+  }
+
+  const subtotal = calculateSubtotal()
 
   if (loading && items.length === 0) {
     return (
@@ -50,14 +55,14 @@ const Cart = () => {
       {/* ── Nav ── */}
       <Navbar />
 
-      <main className="pt-24 md:pt-32 pb-32 px-4 sm:px-8 md:px-14 max-w-[1440px] mx-auto">
+      <main className="pt-32 pb-32 px-8 md:px-14 max-w-[1440px] mx-auto">
         <motion.header 
           initial="hidden"
           animate="show"
           variants={stagger}
           className="mb-16"
         >
-          <motion.h1 variants={fadeUp} className="text-[clamp(2rem,8vw,4rem)] font-serif text-brand-black uppercase leading-tight tracking-tight">
+          <motion.h1 variants={fadeUp} className="text-[clamp(2.5rem,6vw,4rem)] font-serif text-brand-black uppercase leading-none tracking-tight">
             Your Bag
           </motion.h1>
           <motion.p variants={fadeUp} className="text-[10px] uppercase tracking-[0.4em] text-brand-stone mt-4 font-medium">
@@ -87,95 +92,40 @@ const Cart = () => {
                   layout
                   className="space-y-12"
                 >
-                  {items.map((item, index) => {
-                    // Robustly find the variant ID (handle both string and object)
-                    const vId = item.variant?._id || item.variant;
-                    const selectedVariant = vId ? item.product?.variants?.find(v => String(v._id) === String(vId)) : null;
-                    
-                    // Improved image resolution logic
-                    const variantImage = selectedVariant?.images?.[0]?.url;
-                    const productImage = typeof item.product?.images?.[0] === 'string' 
-                        ? item.product.images[0] 
-                        : item.product?.images?.[0]?.url;
-                    const itemImage = variantImage || productImage;
-
-                    const variantAttributes = selectedVariant?.attributes 
-                        ? (selectedVariant.attributes instanceof Map ? Object.fromEntries(selectedVariant.attributes) : selectedVariant.attributes)
-                        : null;
-
-                    // Price comparison logic
-                    const addedPrice = item.price.amount;
-                    const currentBasePrice = item.product?.price?.amount || 0;
-                    const currentVariantPrice = (selectedVariant?.price?.amount) || currentBasePrice;
-                    
-                    const priceDiff = addedPrice - currentVariantPrice;
-                    const variantSavings = currentBasePrice - currentVariantPrice;
-
-                    return (
-                      <motion.div
-                        key={`${item.product._id}-${item.variant || 'none'}`}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.5 }}
-                         className="flex gap-4 sm:gap-8 items-start border-b border-black/5 pb-10 md:pb-12 group"
-                      >
-                        <div className="w-24 sm:w-32 md:w-44 shrink-0 aspect-3/4 bg-white overflow-hidden border border-black/5">
-                          <img 
-                            src={itemImage} 
-                            alt={item.product?.title}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                          />
-                        </div>
+                  {items.map((item, index) => (
+                    <motion.div
+                      key={`${item.product._id}-${item.variant || 'none'}`}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.5 }}
+                      className="flex gap-8 items-start border-b border-black/5 pb-12 group"
+                    >
+                      <div className="w-32 md:w-44 shrink-0 aspect-3/4 bg-white overflow-hidden border border-black/5">
+                        <img 
+                          src={item.product?.images?.[0]} 
+                          alt={item.product?.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
 
                       <div className="flex-1 flex flex-col min-h-full py-1">
-                          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                            <div className="space-y-2">
-                              <h3 className="text-base md:text-xl font-serif text-brand-black uppercase tracking-wide leading-snug">
-                                  {item.product?.title}
-                              </h3>
-                              <div className="flex flex-wrap gap-x-3 gap-y-1">
-                                  {variantAttributes ? (
-                                      Object.entries(variantAttributes).map(([key, value]) => (
-                                          <div key={key} className="flex flex-col">
-                                              <span className="text-[7px] md:text-[8px] uppercase tracking-[0.2em] text-brand-stone/60 font-bold">{key}</span>
-                                              <span className="text-[9px] md:text-[10px] uppercase tracking-[0.15em] text-brand-stone font-medium">{value}</span>
-                                          </div>
-                                      ))
-                                  ) : (
-                                      <p className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-brand-stone font-medium">
-                                          Standard Edition
-                                      </p>
-                                  )}
-                              </div>
-                            </div>
-                            {/* price and notifications */}
-                            <div className="flex flex-col items-start sm:items-end gap-1.5 md:gap-2">
-                              <span className="text-sm md:text-[15px] font-medium text-brand-black">
-                                  {currentVariantPrice.toLocaleString()} {item.price.currency}
-                              </span>
-                            
-                            {/* Consolidated Price Notifications */}
-                            {priceDiff !== 0 ? (
-                                <span className={`text-[9px] uppercase tracking-[0.2em] font-medium ${priceDiff > 0 ? 'text-brand-accent font-bold' : 'text-red-800/60 italic'}`}>
-                                    {priceDiff > 0 
-                                        ? `Curated Savings: ${priceDiff.toLocaleString()} ${item.price.currency}` 
-                                        : `This product will cost you ${Math.abs(priceDiff).toLocaleString()} ${item.price.currency} more`}
-                                </span>
-                            ) : (
-                                variantSavings !== 0 && (
-                                    <span className={`text-[9px] uppercase tracking-[0.2em] font-medium ${variantSavings > 0 ? 'text-brand-stone/60' : 'text-red-800/60 italic'}`}>
-                                        {variantSavings > 0 
-                                            ? `Variant Advantage: -${variantSavings.toLocaleString()} ${item.price.currency}` 
-                                            : `This product will cost you ${Math.abs(variantSavings).toLocaleString()} ${item.price.currency} more`}
-                                    </span>
-                                )
-                            )}
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-2">
+                            <h3 className="text-lg md:text-xl font-serif text-brand-black uppercase tracking-wide">
+                                {item.product?.title}
+                            </h3>
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-brand-stone font-medium">
+                                {item.variant ? 'Variant Selected' : 'Standard Edition'}
+                            </p>
                           </div>
+                          <span className="text-[15px] font-medium text-brand-black">
+                            {item.price.amount.toLocaleString()} {item.price.currency}
+                          </span>
                         </div>
 
-                        <div className="mt-auto pt-6 md:pt-10 flex justify-between items-center">
+                        <div className="mt-auto pt-10 flex justify-between items-center">
                           <div className="flex items-center border border-black/10">
                             <button 
                                 onClick={() => handleUpdateQuantity({ productId: item.product?._id, variantId: item.variant, quantity: item.quantity - 1 })}
@@ -183,7 +133,7 @@ const Cart = () => {
                                 className="w-9 h-9 flex items-center justify-center hover:bg-black/5 transition-colors disabled:opacity-30"
                             >
                               <span className="text-sm">−</span>
-                            </button> 
+                            </button>
                             <span className="w-10 text-center text-[12px] font-medium">{item.quantity}</span>
                             <button 
                                 onClick={() => handleUpdateQuantity({ productId: item.product?._id, variantId: item.variant, quantity: item.quantity + 1 })}
@@ -192,19 +142,16 @@ const Cart = () => {
                               <span className="text-sm">+</span>
                             </button>
                           </div>
-                          {/* Remove button */}
                           <button 
                             onClick={() => handleRemoveItem({ productId: item.product?._id, variantId: item.variant })}
                             className="text-[10px] uppercase tracking-[0.3em] text-brand-stone hover:text-brand-black transition-colors border-b border-transparent hover:border-brand-black pb-0.5"
                           >
                             Remove
                           </button>
-
                         </div>
                       </div>
                     </motion.div>
-                    );
-                  })}
+                  ))}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -226,7 +173,7 @@ const Cart = () => {
               transition={{ delay: 0.3, duration: 0.8 }}
               className="w-full lg:w-[450px] shrink-0 lg:sticky lg:top-32"
             >
-              <div className="bg-white p-6 sm:p-10 space-y-10 sm:space-y-12 border border-black/5 shadow-sm">
+              <div className="bg-white p-10 space-y-12 border border-black/5 shadow-sm">
                 <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-black border-b border-black/5 pb-6">
                     Order Summary
                 </h3>
@@ -234,7 +181,7 @@ const Cart = () => {
                 <div className="space-y-6">
                   <div className="flex justify-between text-[14px] font-light">
                     <span className="text-brand-stone">Subtotal</span>
-                    <span className="text-brand-black">{totalAmount.toLocaleString()} INR</span>
+                    <span className="text-brand-black">{subtotal.toLocaleString()} INR</span>
                   </div>
                   <div className="flex justify-between text-[14px] font-light">
                     <span className="text-brand-stone">Shipping</span>
@@ -242,7 +189,7 @@ const Cart = () => {
                   </div>
                   <div className="flex justify-between items-end pt-8 border-t border-black/5">
                     <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-brand-black">Total</span>
-                    <span className="text-3xl font-serif text-brand-black">{totalAmount.toLocaleString()} INR</span>
+                    <span className="text-3xl font-serif text-brand-black">{subtotal.toLocaleString()} INR</span>
                   </div>
                 </div>
 
