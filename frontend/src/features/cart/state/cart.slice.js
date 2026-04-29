@@ -4,34 +4,25 @@ export const cartSlice = createSlice({
     name: "cart",
     initialState: {
         items: [],
+        totalPrice: 0,
+        currency: "INR",
         loading: false,
         error: null
     },
     reducers: {
-        setItems: (state, action) => {
-            state.items = action.payload;
+        setCart: (state, action) => {
+            state.items = action.payload?.items || [];
+            state.totalPrice = action.payload?.totalPrice || 0;
+            state.currency = action.payload?.currency || "INR";
         },
         setLoading: (state, action) => {
             state.loading = action.payload;
         },
         setError: (state, action) => {
             state.error = action.payload;
-        },
-        updateItemQuantity: (state, action) => {
-            const { productId, variantId, quantity } = action.payload;
-            const item = state.items.find(i => 
-                i.product._id === productId && i.variant === variantId
-            );
-            if (item) item.quantity = quantity;
-        },
-        removeItem: (state, action) => {
-            const { productId, variantId } = action.payload;
-            state.items = state.items.filter(i => 
-                !(i.product._id === productId && i.variant === variantId)
-            );
         }
     }
 });
 
-export const { setItems, setLoading, setError, updateItemQuantity, removeItem } = cartSlice.actions;
+export const { setCart, setLoading, setError } = cartSlice.actions;
 export default cartSlice.reducer;

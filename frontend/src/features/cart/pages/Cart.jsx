@@ -21,19 +21,15 @@ const stagger = {
 }
 
 const Cart = () => {
-  const navigate = useNavigate()
   const user = useSelector(state => state.auth.user)
-  const { items, loading, handleFetchCart, handleUpdateQuantity, handleRemoveItem } = useCart()
+  const { items, totalPrice, currency, loading, handleFetchCart, handleUpdateQuantity, handleRemoveItem } = useCart()
 
   useEffect(() => {
     handleFetchCart()
   }, [])
 
-  const calculateSubtotal = () => {
-    return items.reduce((total, item) => total + (item.price.amount * item.quantity), 0)
-  }
-
-  const subtotal = calculateSubtotal()
+  // The aggregation already calculates the subtotal as totalPrice
+  const subtotal = totalPrice || 0;
 
   if (loading && items.length === 0) {
     return (
@@ -92,66 +88,92 @@ const Cart = () => {
                   layout
                   className="space-y-12"
                 >
-                  {items.map((item, index) => (
-                    <motion.div
-                      key={`${item.product._id}-${item.variant || 'none'}`}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.5 }}
-                      className="flex gap-8 items-start border-b border-black/5 pb-12 group"
-                    >
-                      <div className="w-32 md:w-44 shrink-0 aspect-3/4 bg-white overflow-hidden border border-black/5">
-                        <img 
-                          src={item.product?.images?.[0]} 
-                          alt={item.product?.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
-                      </div>
+                  {items.map((item) => {
+                    const vId = item.variant?._id || item.variant;
+                    const selectedVariant = item.product?.variantDetails || (vId ? item.product?.variants?.find(v => String(v._id) === String(vId)) : null);
+                    
+                    const variantImage = typeof selectedVariant?.images?.[0] === 'string' ? selectedVariant.images[0] : selectedVariant?.images?.[0]?.url;
+                    const productImage = typeof item.product?.images?.[0] === 'string' 
+                        ? item.product.images[0] 
+                        : item.product?.images?.[0]?.url;
+                    const itemImage = variantImage || productImage;
 
-                      <div className="flex-1 flex flex-col min-h-full py-1">
-                        <div className="flex justify-between items-start">
-                          <div className="space-y-2">
-                            <h3 className="text-lg md:text-xl font-serif text-brand-black uppercase tracking-wide">
-                                {item.product?.title}
-                            </h3>
-                            <p className="text-[10px] uppercase tracking-[0.2em] text-brand-stone font-medium">
-                                {item.variant ? 'Variant Selected' : 'Standard Edition'}
-                            </p>
-                          </div>
-                          <span className="text-[15px] font-medium text-brand-black">
-                            {item.price.amount.toLocaleString()} {item.price.currency}
-                          </span>
+                    const variantAttributes = selectedVariant?.attributes 
+                        ? (selectedVariant.attributes instanceof Map ? Object.fromEntries(selectedVariant.attributes) : selectedVariant.attributes)
+                        : null;
+
+                    return (
+                      <motion.div
+                        key={`${item.product._id}-${item.variant || 'none'}`}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.5 }}
+                        className="flex gap-8 items-start border-b border-black/5 pb-12 group"
+                      >
+                        <div className="w-32 md:w-44 shrink-0 aspect-3/4 bg-white overflow-hidden border border-black/5">
+                          <img 
+                            src={itemImage} 
+                            alt={item.product?.title}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
                         </div>
 
-                        <div className="mt-auto pt-10 flex justify-between items-center">
-                          <div className="flex items-center border border-black/10">
+                        <div className="flex-1 flex flex-col min-h-full py-1">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-2">
+                              <h3 className="text-lg md:text-xl font-serif text-brand-black uppercase tracking-wide">
+                                  {item.product?.title}
+                              </h3>
+                              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                                {variantAttributes ? (
+                                    Object.entries(variantAttributes).map(([key, value]) => (
+                                        <div key={key} className="flex flex-col">
+                                            <span className="text-[7px] md:text-[8px] uppercase tracking-[0.2em] text-brand-stone/60 font-bold">{key}</span>
+                                            <span className="text-[9px] md:text-[10px] uppercase tracking-[0.15em] text-brand-stone font-medium">{value}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-[10px] uppercase tracking-[0.2em] text-brand-stone font-medium">
+                                        Standard Edition
+                                    </p>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-[15px] font-medium text-brand-black">
+                              {item.price?.amount?.toLocaleString()} {item.price?.currency}
+                            </span>
+                          </div>
+
+                          <div className="mt-auto pt-10 flex justify-between items-center">
+                            <div className="flex items-center border border-black/10">
+                              <button 
+                                  onClick={() => handleUpdateQuantity({ productId: item.product?._id, variantId: item.variant, quantity: item.quantity - 1 })}
+                                  disabled={item.quantity <= 1}
+                                  className="w-9 h-9 flex items-center justify-center hover:bg-black/5 transition-colors disabled:opacity-30"
+                              >
+                                <span className="text-sm">−</span>
+                              </button>
+                              <span className="w-10 text-center text-[12px] font-medium">{item.quantity}</span>
+                              <button 
+                                  onClick={() => handleUpdateQuantity({ productId: item.product?._id, variantId: item.variant, quantity: item.quantity + 1 })}
+                                  className="w-9 h-9 flex items-center justify-center hover:bg-black/5 transition-colors"
+                              >
+                                <span className="text-sm">+</span>
+                              </button>
+                            </div>
                             <button 
-                                onClick={() => handleUpdateQuantity({ productId: item.product?._id, variantId: item.variant, quantity: item.quantity - 1 })}
-                                disabled={item.quantity <= 1}
-                                className="w-9 h-9 flex items-center justify-center hover:bg-black/5 transition-colors disabled:opacity-30"
+                              onClick={() => handleRemoveItem({ productId: item.product?._id, variantId: item.variant })}
+                              className="text-[10px] uppercase tracking-[0.3em] text-brand-stone hover:text-brand-black transition-colors border-b border-transparent hover:border-brand-black pb-0.5"
                             >
-                              <span className="text-sm">−</span>
-                            </button>
-                            <span className="w-10 text-center text-[12px] font-medium">{item.quantity}</span>
-                            <button 
-                                onClick={() => handleUpdateQuantity({ productId: item.product?._id, variantId: item.variant, quantity: item.quantity + 1 })}
-                                className="w-9 h-9 flex items-center justify-center hover:bg-black/5 transition-colors"
-                            >
-                              <span className="text-sm">+</span>
+                              Remove
                             </button>
                           </div>
-                          <button 
-                            onClick={() => handleRemoveItem({ productId: item.product?._id, variantId: item.variant })}
-                            className="text-[10px] uppercase tracking-[0.3em] text-brand-stone hover:text-brand-black transition-colors border-b border-transparent hover:border-brand-black pb-0.5"
-                          >
-                            Remove
-                          </button>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </motion.div>
               )}
             </AnimatePresence>

@@ -1,6 +1,7 @@
 import cartModel from "../models/cart.model.js";
 import productModel from "../models/product.model.js";
 import { stockOfVariant } from "../dao/product.dao.js";
+import mongoose from "mongoose";
 
 /**
  * @desc Add item to cart
@@ -82,30 +83,85 @@ export const addToCart = async (req, res) => {
     }
 }
 
+const fetchCartData = async (userId) => {
+  let cart = await cartModel.aggregate([
+    {
+      $match: {
+        user: new mongoose.Types.ObjectId(userId)
+      }
+    },
+    { $unwind: { path: '$items' } },
+    {
+      $lookup: {
+        from: 'products',
+        localField: 'items.product',
+        foreignField: '_id',
+        as: 'items.product'
+      }
+    },
+    { $unwind: { path: '$items.product' } },
+    {
+      $addFields: {
+        "items.product.variantDetails": {
+          $first: {
+            $filter: {
+              input: "$items.product.variants",
+              as: "v",
+              cond: { $eq: ["$$v._id", "$items.variant"] }
+            }
+          }
+        },
+        itemPrice: {
+          price: {
+            $multiply: [
+              '$items.quantity',
+              '$items.price.amount'
+            ]
+          },
+          currency: '$items.price.currency'
+        }
+      }
+    },
+    {
+      $group: {
+        _id: '$_id',
+        totalPrice: { $sum: '$itemPrice.price' },
+        currency: {
+          $first: '$itemPrice.currency'
+        },
+        items: { $push: '$items' }
+      }
+    }
+  ]);
+
+  if (cart.length > 0) {
+    return cart[0];
+  } else {
+    let emptyCart = await cartModel.findOne({ user: userId });
+    if (!emptyCart) {
+      emptyCart = await cartModel.create({ user: userId, items: [] });
+    }
+    return { ...emptyCart.toObject(), totalPrice: 0, currency: "INR", items: [] };
+  }
+};
+
 /**
  * @route GET /api/cart
  * @desc Get user's cart
  * @access Private (User)
 */
 export const getCart = async (req, res) => {
-
-    const user = req.user;
-
-    let cart = await cartModel.findOne({
-        user: user.id
-    }).populate("items.product");
-
-    if(!cart) {
-        cart = await cartModel.create({
-            user: user.id
+    try {
+        const cart = await fetchCartData(req.user.id);
+        return res.status(200).json({
+            success: true,
+            message: "Cart fetched successfully",
+            cart
         });
+    } catch (error) {
+        console.error("Get cart error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
-
-    return res.status(200).json({
-        success: true,
-        message: "Cart fetched successfully",
-        cart
-    });
 }
 
 /**
@@ -152,12 +208,12 @@ export const updateCartItemQuantity = async (req, res) => {
         cart.items[itemIndex].quantity = quantity;
         await cart.save();
 
-        await cart.populate("items.product");
+        const updatedCart = await fetchCartData(req.user.id);
 
         return res.status(200).json({
             success: true,
             message: "Cart updated successfully",
-            cart
+            cart: updatedCart
         });
 
     } catch (error) {
@@ -188,12 +244,12 @@ export const removeFromCart = async (req, res) => {
 
         await cart.save();
 
-        await cart.populate("items.product");
+        const updatedCart = await fetchCartData(req.user.id);
 
         return res.status(200).json({
             success: true,
             message: "Item removed from cart successfully",
-            cart
+            cart: updatedCart
         });
 
     } catch (error) {
