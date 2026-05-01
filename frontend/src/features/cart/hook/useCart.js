@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import * as cartApi from "../service/cart.api";
 import { setCart, setLoading, setError } from "../state/cart.slice";
 
+
 export const useCart = () => {
     const dispatch = useDispatch();
     const { items, totalPrice, currency, loading, error } = useSelector((state) => state.cart);
@@ -58,7 +59,13 @@ export const useCart = () => {
         }
     }
 
-    return { 
+    async function handleCreateCartOrder() {
+        const data = await cartApi.createCartOrder();
+        return data.order;
+    }
+
+
+    return {
         items, 
         totalPrice,
         currency,
@@ -67,6 +74,7 @@ export const useCart = () => {
         handleAddItem, 
         handleFetchCart, 
         handleUpdateQuantity, 
-        handleRemoveItem 
+        handleRemoveItem,
+        handleCreateCartOrder 
     }
 }

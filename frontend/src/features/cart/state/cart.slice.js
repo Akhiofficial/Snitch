@@ -22,6 +22,7 @@ export const cartSlice = createSlice({
             state.error = action.payload;
         }
     }
+    
 });
 
 export const { setCart, setLoading, setError } = cartSlice.actions;

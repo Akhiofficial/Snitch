@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticateUser } from "../middlewear/auth.middlewear.js";
-import { addToCart, getCart, updateCartItemQuantity, removeFromCart } from "../controllers/cart.controller.js";
+import { addToCart, getCart, updateCartItemQuantity, removeFromCart, createOrderController } from "../controllers/cart.controller.js";
 import { validateAddToCart } from "../validators/cart.validator.js";
 
 
@@ -38,5 +38,15 @@ router.patch('/update/:productId/:variantId', authenticateUser, updateCartItemQu
  * @access Private (User)
 */
 router.delete('/remove/:productId/:variantId', authenticateUser, removeFromCart)
+
+/**
+ * @route POST /api/cart/payment/create/order
+ * @desc Create order for payment
+ * @access Private (User)
+ * @arguments amount - Amount to be paid
+ * @arguments currency - Currency of the amount
+ * @returns {Object} - The created order
+*/
+router.post('/payment/create/order', authenticateUser, createOrderController)
 
 export default router;

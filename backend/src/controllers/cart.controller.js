@@ -1,7 +1,8 @@
 import cartModel from "../models/cart.model.js";
 import productModel from "../models/product.model.js";
-import { stockOfVariant } from "../dao/product.dao.js";
-import mongoose from "mongoose";
+import { createOrder } from "../services/payment.service.js";
+import { fetchCartData } from "../dao/cart.dao.js";
+import paymentModel from "../models/payment.model.js";
 
 /**
  * @desc Add item to cart
@@ -9,141 +10,80 @@ import mongoose from "mongoose";
  * @access Private (User)
 */
 export const addToCart = async (req, res) => {
-    try {
-        const { productId, variantId } = req.params;
-        const { quantity = 1 } = req.body;
+  try {
+    const { productId, variantId } = req.params;
+    const { quantity = 1 } = req.body;
 
-        const query = { _id: productId };
-        if (variantId !== 'none') {
-            query["variants._id"] = variantId;
-        }
-
-        const product = await productModel.findOne(query);
-
-        if (!product) {
-            return res.status(404).json({ 
-                success: false, 
-                message: variantId !== 'none' ? "Product or Variant not found" : "Product not found" 
-            });
-        }
-
-        let price = product.price;
-        let stock = product.stock;
-        let effectiveVariantId = null;
-
-        if (variantId !== 'none') {
-            const variant = product.variants.find(v => v._id.toString() === variantId);
-            // Use variant price only if it has an amount, otherwise fallback to product price
-            price = (variant.price && variant.price.amount) ? variant.price : product.price;
-            stock = variant.stock;
-            effectiveVariantId = variantId;
-        }
-
-        const cart = (await cartModel.findOne({ user: req.user.id })) || 
-                     (await cartModel.create({ user: req.user.id, items: [] }));
-
-        // Check if item already exists in cart
-        const existingItemIndex = cart.items.findIndex(item => 
-            item.product.toString() === productId && 
-            (effectiveVariantId ? item.variant?.toString() === effectiveVariantId : !item.variant)
-        );
-
-        if (existingItemIndex > -1) {
-            const existingItem = cart.items[existingItemIndex];
-            if (existingItem.quantity + quantity > stock) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Only ${stock} items left in stock. You already have ${existingItem.quantity} in cart.`
-                });
-            }
-            existingItem.quantity += quantity;
-            existingItem.price = price; // Update price in case it changed
-        } else {
-            if (quantity > stock) {
-                return res.status(400).json({ success: false, message: `Only ${stock} items left in stock` });
-            }
-            cart.items.push({
-                product: productId,
-                variant: effectiveVariantId,
-                quantity,
-                price
-            });
-        }
-
-        await cart.save();
-
-        return res.status(200).json({
-            success: true,
-            message: existingItemIndex > -1 ? "Cart updated successfully" : "Item added to cart successfully"
-        });
-
-    } catch (error) {
-        console.error("Add to cart error:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+    const query = { _id: productId };
+    if (variantId !== 'none') {
+      query["variants._id"] = variantId;
     }
+
+    const product = await productModel.findOne(query);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: variantId !== 'none' ? "Product or Variant not found" : "Product not found"
+      });
+    }
+
+    let price = product.price;
+    let stock = product.stock;
+    let effectiveVariantId = null;
+
+    if (variantId !== 'none') {
+      const variant = product.variants.find(v => v._id.toString() === variantId);
+      // Use variant price only if it has an amount, otherwise fallback to product price
+      price = (variant.price && variant.price.amount) ? variant.price : product.price;
+      stock = variant.stock;
+      effectiveVariantId = variantId;
+    }
+
+    const cart = (await cartModel.findOne({ user: req.user.id })) ||
+      (await cartModel.create({ user: req.user.id, items: [] }));
+
+    // Check if item already exists in cart
+    const existingItemIndex = cart.items.findIndex(item =>
+      item.product.toString() === productId &&
+      (effectiveVariantId ? item.variant?.toString() === effectiveVariantId : !item.variant)
+    );
+
+    if (existingItemIndex > -1) {
+      const existingItem = cart.items[existingItemIndex];
+      if (existingItem.quantity + quantity > stock) {
+        return res.status(400).json({
+          success: false,
+          message: `Only ${stock} items left in stock. You already have ${existingItem.quantity} in cart.`
+        });
+      }
+      existingItem.quantity += quantity;
+      existingItem.price = price; // Update price in case it changed
+    } else {
+      if (quantity > stock) {
+        return res.status(400).json({ success: false, message: `Only ${stock} items left in stock` });
+      }
+      cart.items.push({
+        product: productId,
+        variant: effectiveVariantId,
+        quantity,
+        price
+      });
+    }
+
+    await cart.save();
+
+    return res.status(200).json({
+      success: true,
+      message: existingItemIndex > -1 ? "Cart updated successfully" : "Item added to cart successfully"
+    });
+
+  } catch (error) {
+    console.error("Add to cart error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
 }
 
-const fetchCartData = async (userId) => {
-  let cart = await cartModel.aggregate([
-    {
-      $match: {
-        user: new mongoose.Types.ObjectId(userId)
-      }
-    },
-    { $unwind: { path: '$items' } },
-    {
-      $lookup: {
-        from: 'products',
-        localField: 'items.product',
-        foreignField: '_id',
-        as: 'items.product'
-      }
-    },
-    { $unwind: { path: '$items.product' } },
-    {
-      $addFields: {
-        "items.product.variantDetails": {
-          $first: {
-            $filter: {
-              input: "$items.product.variants",
-              as: "v",
-              cond: { $eq: ["$$v._id", "$items.variant"] }
-            }
-          }
-        },
-        itemPrice: {
-          price: {
-            $multiply: [
-              '$items.quantity',
-              '$items.price.amount'
-            ]
-          },
-          currency: '$items.price.currency'
-        }
-      }
-    },
-    {
-      $group: {
-        _id: '$_id',
-        totalPrice: { $sum: '$itemPrice.price' },
-        currency: {
-          $first: '$itemPrice.currency'
-        },
-        items: { $push: '$items' }
-      }
-    }
-  ]);
-
-  if (cart.length > 0) {
-    return cart[0];
-  } else {
-    let emptyCart = await cartModel.findOne({ user: userId });
-    if (!emptyCart) {
-      emptyCart = await cartModel.create({ user: userId, items: [] });
-    }
-    return { ...emptyCart.toObject(), totalPrice: 0, currency: "INR", items: [] };
-  }
-};
 
 /**
  * @route GET /api/cart
@@ -151,17 +91,17 @@ const fetchCartData = async (userId) => {
  * @access Private (User)
 */
 export const getCart = async (req, res) => {
-    try {
-        const cart = await fetchCartData(req.user.id);
-        return res.status(200).json({
-            success: true,
-            message: "Cart fetched successfully",
-            cart
-        });
-    } catch (error) {
-        console.error("Get cart error:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
-    }
+  try {
+    const cart = await fetchCartData(req.user.id);
+    return res.status(200).json({
+      success: true,
+      message: "Cart fetched successfully",
+      cart
+    });
+  } catch (error) {
+    console.error("Get cart error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
 }
 
 /**
@@ -170,56 +110,56 @@ export const getCart = async (req, res) => {
  * @access Private (User)
  */
 export const updateCartItemQuantity = async (req, res) => {
-    try {
-        const { productId, variantId } = req.params;
-        const { quantity } = req.body;
+  try {
+    const { productId, variantId } = req.params;
+    const { quantity } = req.body;
 
-        if (quantity < 1) {
-            return res.status(400).json({ success: false, message: "Quantity must be at least 1" });
-        }
-
-        const cart = await cartModel.findOne({ user: req.user.id });
-        if (!cart) {
-            return res.status(404).json({ success: false, message: "Cart not found" });
-        }
-
-        const effectiveVariantId = variantId === 'none' ? null : variantId;
-        const itemIndex = cart.items.findIndex(item => 
-            item.product.toString() === productId && 
-            (effectiveVariantId ? item.variant?.toString() === effectiveVariantId : !item.variant)
-        );
-
-        if (itemIndex === -1) {
-            return res.status(404).json({ success: false, message: "Item not found in cart" });
-        }
-
-        // Check stock
-        const product = await productModel.findById(productId);
-        let stock = product.stock;
-        if (effectiveVariantId) {
-            const variant = product.variants.find(v => v._id.toString() === effectiveVariantId);
-            stock = variant.stock;
-        }
-
-        if (quantity > stock) {
-            return res.status(400).json({ success: false, message: `Only ${stock} items left in stock` });
-        }
-
-        cart.items[itemIndex].quantity = quantity;
-        await cart.save();
-
-        const updatedCart = await fetchCartData(req.user.id);
-
-        return res.status(200).json({
-            success: true,
-            message: "Cart updated successfully",
-            cart: updatedCart
-        });
-
-    } catch (error) {
-        console.error("Update cart quantity error:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+    if (quantity < 1) {
+      return res.status(400).json({ success: false, message: "Quantity must be at least 1" });
     }
+
+    const cart = await cartModel.findOne({ user: req.user.id });
+    if (!cart) {
+      return res.status(404).json({ success: false, message: "Cart not found" });
+    }
+
+    const effectiveVariantId = variantId === 'none' ? null : variantId;
+    const itemIndex = cart.items.findIndex(item =>
+      item.product.toString() === productId &&
+      (effectiveVariantId ? item.variant?.toString() === effectiveVariantId : !item.variant)
+    );
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ success: false, message: "Item not found in cart" });
+    }
+
+    // Check stock
+    const product = await productModel.findById(productId);
+    let stock = product.stock;
+    if (effectiveVariantId) {
+      const variant = product.variants.find(v => v._id.toString() === effectiveVariantId);
+      stock = variant.stock;
+    }
+
+    if (quantity > stock) {
+      return res.status(400).json({ success: false, message: `Only ${stock} items left in stock` });
+    }
+
+    cart.items[itemIndex].quantity = quantity;
+    await cart.save();
+
+    const updatedCart = await fetchCartData(req.user.id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Cart updated successfully",
+      cart: updatedCart
+    });
+
+  } catch (error) {
+    console.error("Update cart quantity error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
 }
 
 /**
@@ -228,32 +168,84 @@ export const updateCartItemQuantity = async (req, res) => {
  * @access Private (User)
  */
 export const removeFromCart = async (req, res) => {
-    try {
-        const { productId, variantId } = req.params;
+  try {
+    const { productId, variantId } = req.params;
 
-        const cart = await cartModel.findOne({ user: req.user.id });
-        if (!cart) {
-            return res.status(404).json({ success: false, message: "Cart not found" });
-        }
-
-        const effectiveVariantId = variantId === 'none' ? null : variantId;
-        cart.items = cart.items.filter(item => 
-            !(item.product.toString() === productId && 
-              (effectiveVariantId ? item.variant?.toString() === effectiveVariantId : !item.variant))
-        );
-
-        await cart.save();
-
-        const updatedCart = await fetchCartData(req.user.id);
-
-        return res.status(200).json({
-            success: true,
-            message: "Item removed from cart successfully",
-            cart: updatedCart
-        });
-
-    } catch (error) {
-        console.error("Remove from cart error:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+    const cart = await cartModel.findOne({ user: req.user.id });
+    if (!cart) {
+      return res.status(404).json({ success: false, message: "Cart not found" });
     }
+
+    const effectiveVariantId = variantId === 'none' ? null : variantId;
+    cart.items = cart.items.filter(item =>
+      !(item.product.toString() === productId &&
+        (effectiveVariantId ? item.variant?.toString() === effectiveVariantId : !item.variant))
+    );
+
+    await cart.save();
+
+    const updatedCart = await fetchCartData(req.user.id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Item removed from cart successfully",
+      cart: updatedCart
+    });
+
+  } catch (error) {
+    console.error("Remove from cart error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+
+/**
+ * @desc Create order
+ * @route POST /api/cart/create/order
+ * @access Private (User)
+*/
+export const createOrderController = async (req, res) => {
+  try {
+    const cart = await fetchCartData(req.user.id);
+
+    if (!cart) {
+      return res.status(404).json({
+        success: false,
+        message: "Cart is empty",
+      })
+    }
+
+    const order = await createOrder({ amount: cart.totalPrice, currency: cart.currency || "INR" });
+
+    const payment = await paymentModel.create({
+      user: req.user.id,
+      price: {
+        amount: cart.totalPrice,
+        currency: cart.currency || "INR"
+      },
+      razorpay: {
+        orderId: order.id
+      },
+      orderItems: cart.items.map(item => ({
+        title: item.product.title,
+        productId: item.product._id,
+        variantId: item.variant._id || null,
+        quantity: item.quantity,
+        price: {
+          amount: item.variant?.price.amount || item.product.price.amount,
+          currency: item.variant?.price.currency || item.product.price.currency
+        },
+        images: item.variant?.images || item.product.images
+      }))
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Order created successfully",
+      order,
+    });
+  } catch (error) {
+    console.error("Create order error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
 }

@@ -1,9 +1,12 @@
 import { useEffect } from 'react'
-import { useSelector } from 'react-redux'
-import { useNavigate, Link } from 'react-router'
+import { Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '../hook/useCart'
 import Navbar from '../../../app/components/Navbar'
+import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
+import { useSelector } from 'react-redux'
+
+
 
 /* ─── Animation Variants ─────────────────────────────────────────────── */
 const fadeUp = {
@@ -21,12 +24,49 @@ const stagger = {
 }
 
 const Cart = () => {
-  const user = useSelector(state => state.auth.user)
-  const { items, totalPrice, currency, loading, handleFetchCart, handleUpdateQuantity, handleRemoveItem } = useCart()
+
+  const user = useSelector(state => state.user)
+
+  const { items, totalPrice, loading, handleFetchCart, handleUpdateQuantity, handleRemoveItem, handleCreateCartOrder } = useCart()
+  const { error, isLoading, Razorpay } = useRazorpay();
 
   useEffect(() => {
     handleFetchCart()
   }, [])
+
+
+
+  async function handleCheckout() {
+    const order = await handleCreateCartOrder(); // already returns the Razorpay order object
+    
+
+    const options = {
+      key: "rzp_test_SjlYu4EEv5dulS",
+      amount: order.amount,
+      currency: order.currency,
+      name: "Snitch",
+      description: "Pay for your order",
+      order_id: order.id,
+      handler: (response) => {
+        console.log(response);
+        alert("Payment Successful!");
+      },
+      prefill: {
+        name: user?.fullname,
+        email: user?.email,
+        contact: user?.contact,
+      },
+      theme: {
+        color: "#F37254",
+      },
+    };
+
+    const razorpayInstance = new Razorpay(options);
+    razorpayInstance.open();
+
+
+  }
+
 
   // The aggregation already calculates the subtotal as totalPrice
   const subtotal = totalPrice || 0;
@@ -47,12 +87,12 @@ const Cart = () => {
 
   return (
     <div className="min-h-screen bg-brand-cream selection:bg-brand-black selection:text-brand-cream">
-      
+
       {/* ── Nav ── */}
       <Navbar />
 
       <main className="pt-32 pb-32 px-8 md:px-14 max-w-[1440px] mx-auto">
-        <motion.header 
+        <motion.header
           initial="hidden"
           animate="show"
           variants={stagger}
@@ -79,28 +119,28 @@ const Cart = () => {
                   <p className="text-brand-stone font-light tracking-[0.2em] uppercase text-sm">Your bag is currently empty.</p>
                   <Link to="/products">
                     <button className="px-12 py-4 border border-brand-black text-[10px] uppercase tracking-[0.4em] hover:bg-brand-black hover:text-white transition-all duration-500">
-                        Discover Collection
+                      Discover Collection
                     </button>
                   </Link>
                 </motion.div>
               ) : (
-                <motion.div 
+                <motion.div
                   layout
                   className="space-y-12"
                 >
                   {items.map((item) => {
                     const vId = item.variant?._id || item.variant;
                     const selectedVariant = item.product?.variantDetails || (vId ? item.product?.variants?.find(v => String(v._id) === String(vId)) : null);
-                    
+
                     const variantImage = typeof selectedVariant?.images?.[0] === 'string' ? selectedVariant.images[0] : selectedVariant?.images?.[0]?.url;
-                    const productImage = typeof item.product?.images?.[0] === 'string' 
-                        ? item.product.images[0] 
-                        : item.product?.images?.[0]?.url;
+                    const productImage = typeof item.product?.images?.[0] === 'string'
+                      ? item.product.images[0]
+                      : item.product?.images?.[0]?.url;
                     const itemImage = variantImage || productImage;
 
-                    const variantAttributes = selectedVariant?.attributes 
-                        ? (selectedVariant.attributes instanceof Map ? Object.fromEntries(selectedVariant.attributes) : selectedVariant.attributes)
-                        : null;
+                    const variantAttributes = selectedVariant?.attributes
+                      ? (selectedVariant.attributes instanceof Map ? Object.fromEntries(selectedVariant.attributes) : selectedVariant.attributes)
+                      : null;
 
                     return (
                       <motion.div
@@ -113,8 +153,8 @@ const Cart = () => {
                         className="flex gap-8 items-start border-b border-black/5 pb-12 group"
                       >
                         <div className="w-32 md:w-44 shrink-0 aspect-3/4 bg-white overflow-hidden border border-black/5">
-                          <img 
-                            src={itemImage} 
+                          <img
+                            src={itemImage}
                             alt={item.product?.title}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                           />
@@ -124,20 +164,20 @@ const Cart = () => {
                           <div className="flex justify-between items-start">
                             <div className="space-y-2">
                               <h3 className="text-lg md:text-xl font-serif text-brand-black uppercase tracking-wide">
-                                  {item.product?.title}
+                                {item.product?.title}
                               </h3>
                               <div className="flex flex-wrap gap-x-3 gap-y-1">
                                 {variantAttributes ? (
-                                    Object.entries(variantAttributes).map(([key, value]) => (
-                                        <div key={key} className="flex flex-col">
-                                            <span className="text-[7px] md:text-[8px] uppercase tracking-[0.2em] text-brand-stone/60 font-bold">{key}</span>
-                                            <span className="text-[9px] md:text-[10px] uppercase tracking-[0.15em] text-brand-stone font-medium">{value}</span>
-                                        </div>
-                                    ))
+                                  Object.entries(variantAttributes).map(([key, value]) => (
+                                    <div key={key} className="flex flex-col">
+                                      <span className="text-[7px] md:text-[8px] uppercase tracking-[0.2em] text-brand-stone/60 font-bold">{key}</span>
+                                      <span className="text-[9px] md:text-[10px] uppercase tracking-[0.15em] text-brand-stone font-medium">{value}</span>
+                                    </div>
+                                  ))
                                 ) : (
-                                    <p className="text-[10px] uppercase tracking-[0.2em] text-brand-stone font-medium">
-                                        Standard Edition
-                                    </p>
+                                  <p className="text-[10px] uppercase tracking-[0.2em] text-brand-stone font-medium">
+                                    Standard Edition
+                                  </p>
                                 )}
                               </div>
                             </div>
@@ -148,22 +188,22 @@ const Cart = () => {
 
                           <div className="mt-auto pt-10 flex justify-between items-center">
                             <div className="flex items-center border border-black/10">
-                              <button 
-                                  onClick={() => handleUpdateQuantity({ productId: item.product?._id, variantId: item.variant, quantity: item.quantity - 1 })}
-                                  disabled={item.quantity <= 1}
-                                  className="w-9 h-9 flex items-center justify-center hover:bg-black/5 transition-colors disabled:opacity-30"
+                              <button
+                                onClick={() => handleUpdateQuantity({ productId: item.product?._id, variantId: item.variant, quantity: item.quantity - 1 })}
+                                disabled={item.quantity <= 1}
+                                className="w-9 h-9 flex items-center justify-center hover:bg-black/5 transition-colors disabled:opacity-30"
                               >
                                 <span className="text-sm">−</span>
                               </button>
                               <span className="w-10 text-center text-[12px] font-medium">{item.quantity}</span>
-                              <button 
-                                  onClick={() => handleUpdateQuantity({ productId: item.product?._id, variantId: item.variant, quantity: item.quantity + 1 })}
-                                  className="w-9 h-9 flex items-center justify-center hover:bg-black/5 transition-colors"
+                              <button
+                                onClick={() => handleUpdateQuantity({ productId: item.product?._id, variantId: item.variant, quantity: item.quantity + 1 })}
+                                className="w-9 h-9 flex items-center justify-center hover:bg-black/5 transition-colors"
                               >
                                 <span className="text-sm">+</span>
                               </button>
                             </div>
-                            <button 
+                            <button
                               onClick={() => handleRemoveItem({ productId: item.product?._id, variantId: item.variant })}
                               className="text-[10px] uppercase tracking-[0.3em] text-brand-stone hover:text-brand-black transition-colors border-b border-transparent hover:border-brand-black pb-0.5"
                             >
@@ -177,19 +217,19 @@ const Cart = () => {
                 </motion.div>
               )}
             </AnimatePresence>
-            
+
             {items.length > 0 && (
-                <motion.div variants={fadeUp} className="pt-12">
-                    <p className="text-[13px] font-light text-brand-stone italic leading-relaxed max-w-md">
-                        Enjoy complimentary standard shipping and curated gift wrapping on all orders above ₹1999.
-                    </p>
-                </motion.div>
+              <motion.div variants={fadeUp} className="pt-12">
+                <p className="text-[13px] font-light text-brand-stone italic leading-relaxed max-w-md">
+                  Enjoy complimentary standard shipping and curated gift wrapping on all orders above ₹1999.
+                </p>
+              </motion.div>
             )}
           </section>
 
           {/* Right: Sticky Summary */}
           {items.length > 0 && (
-            <motion.aside 
+            <motion.aside
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
@@ -197,7 +237,7 @@ const Cart = () => {
             >
               <div className="bg-white p-10 space-y-12 border border-black/5 shadow-sm">
                 <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-black border-b border-black/5 pb-6">
-                    Order Summary
+                  Order Summary
                 </h3>
 
                 <div className="space-y-6">
@@ -218,24 +258,26 @@ const Cart = () => {
                 <div className="space-y-4">
                   <label className="text-[9px] uppercase tracking-[0.3em] text-brand-stone font-bold">Promo Code</label>
                   <div className="flex border-b border-black/10 focus-within:border-brand-black transition-colors">
-                    <input 
-                        type="text" 
-                        placeholder="ENTER CODE"
-                        className="bg-transparent border-none focus:ring-0 text-[11px] tracking-widest w-full py-3 px-0 placeholder:text-black/20"
+                    <input
+                      type="text"
+                      placeholder="ENTER CODE"
+                      className="bg-transparent border-none focus:ring-0 text-[11px] tracking-widest w-full py-3 px-0 placeholder:text-black/20"
                     />
                     <button className="text-[10px] uppercase tracking-[0.2em] text-brand-black font-bold px-4 hover:opacity-60">Apply</button>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  <button className="w-full bg-brand-black text-white py-5 text-[11px] uppercase tracking-[0.4em] font-bold hover:bg-brand-stone transition-all duration-500">
+                  <button
+                    onClick={handleCheckout}
+                    className="w-full bg-brand-black text-white py-5 text-[11px] uppercase tracking-[0.4em] font-bold hover:bg-brand-stone transition-all duration-500">
                     Proceed to Checkout
                   </button>
-                  
+
                   <div className="flex flex-col items-center gap-4 opacity-40">
                     <div className="flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        <span className="text-[9px] uppercase tracking-[0.25em]">Secure SSL Encrypted</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                      <span className="text-[9px] uppercase tracking-[0.25em]">Secure SSL Encrypted</span>
                     </div>
                   </div>
                 </div>
@@ -243,7 +285,7 @@ const Cart = () => {
 
               <div className="mt-8 px-4 text-center">
                 <p className="text-[9px] text-brand-stone uppercase tracking-[0.2em] leading-relaxed">
-                    Returns accepted within 14 days.<br/>Subject to our terms of service.
+                  Returns accepted within 14 days.<br />Subject to our terms of service.
                 </p>
               </div>
             </motion.aside>
