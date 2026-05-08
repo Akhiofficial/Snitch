@@ -229,13 +229,13 @@ export const createOrderController = async (req, res) => {
       orderItems: cart.items.map(item => ({
         title: item.product.title,
         productId: item.product._id,
-        variantId: item.variant._id || null,
+        variantId: item.variant || null,
         quantity: item.quantity,
-        price: {
-          amount: item.variant?.price.amount || item.product.price.amount,
-          currency: item.variant?.price.currency || item.product.price.currency
-        },
-        images: item.variant?.images || item.product.images
+        price: item.price,
+        images: (item.product.variantDetails?.images?.length > 0) 
+          ? item.product.variantDetails.images 
+          : item.product.images.map(img => ({ url: img })),
+        description: item.product.description,
       }))
     });
 

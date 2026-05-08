@@ -12,7 +12,9 @@ export const useCart = () => {
         try {
             const data = await cartApi.getCart();
             dispatch(setCart(data.cart));
+            console.log(data.cart);
             return data.cart;
+
         } catch (error) {
             const message = error.response?.data?.message || "Failed to fetch cart";
             dispatch(setError(message));
