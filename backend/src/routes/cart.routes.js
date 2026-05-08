@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticateUser } from "../middlewear/auth.middlewear.js";
-import { addToCart, getCart, updateCartItemQuantity, removeFromCart, createOrderController } from "../controllers/cart.controller.js";
+import { addToCart, getCart, updateCartItemQuantity, removeFromCart, createOrderController, verifyCartOrder } from "../controllers/cart.controller.js";
 import { validateAddToCart } from "../validators/cart.validator.js";
 
 
@@ -48,5 +48,12 @@ router.delete('/remove/:productId/:variantId', authenticateUser, removeFromCart)
  * @returns {Object} - The created order
 */
 router.post('/payment/create/order', authenticateUser, createOrderController)
+
+/**
+ * @route POST /api/cart/payment/verify/order
+ * @desc Verify payment
+ * @access Private (User)
+*/
+router.post('/payment/verify/order', authenticateUser, verifyCartOrder)
 
 export default router;

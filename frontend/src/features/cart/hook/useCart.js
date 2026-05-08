@@ -3,6 +3,7 @@ import * as cartApi from "../service/cart.api";
 import { setCart, setLoading, setError } from "../state/cart.slice";
 
 
+
 export const useCart = () => {
     const dispatch = useDispatch();
     const { items, totalPrice, currency, loading, error } = useSelector((state) => state.cart);
@@ -66,17 +67,28 @@ export const useCart = () => {
         return data.order;
     }
 
+    async function handleVerifyCartOrder({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
+        try {
+            const data = await cartApi.verifyCartOrder({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
+            return data.success;
+        } catch (error) {
+            console.error("Verify cart order error:", error);
+            return false;
+        }
+    }
+
 
     return {
-        items, 
+        items,
         totalPrice,
         currency,
-        loading, 
-        error, 
-        handleAddItem, 
-        handleFetchCart, 
-        handleUpdateQuantity, 
+        loading,
+        error,
+        handleAddItem,
+        handleFetchCart,
+        handleUpdateQuantity,
         handleRemoveItem,
-        handleCreateCartOrder 
+        handleCreateCartOrder,
+        handleVerifyCartOrder
     }
 }

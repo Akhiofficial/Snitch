@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '../hook/useCart'
 import Navbar from '../../../app/components/Navbar'
@@ -25,9 +25,11 @@ const stagger = {
 
 const Cart = () => {
 
+  const navigate = useNavigate();
+
   const user = useSelector(state => state.user)
 
-  const { items, totalPrice, loading, handleFetchCart, handleUpdateQuantity, handleRemoveItem, handleCreateCartOrder } = useCart()
+  const { items, totalPrice, loading, handleFetchCart, handleUpdateQuantity, handleRemoveItem, handleCreateCartOrder, handleVerifyCartOrder } = useCart()
   const { error, isLoading, Razorpay } = useRazorpay();
 
   useEffect(() => {
@@ -35,10 +37,10 @@ const Cart = () => {
   }, [])
 
 
-
   async function handleCheckout() {
+
     const order = await handleCreateCartOrder(); // already returns the Razorpay order object
-    
+
 
     const options = {
       key: "rzp_test_SjlYu4EEv5dulS",
@@ -47,9 +49,11 @@ const Cart = () => {
       name: "Snitch",
       description: "Pay for your order",
       order_id: order.id,
-      handler: (response) => {
-        console.log(response);
-        alert("Payment Successful!");
+      handler: async (response) => {
+        const isValid = await handleVerifyCartOrder(response);
+        if (isValid) {
+          navigate(`/order-success?order_id=${response?.razorpay_order_id}`)
+        }
       },
       prefill: {
         name: user?.fullname,
@@ -63,8 +67,6 @@ const Cart = () => {
 
     const razorpayInstance = new Razorpay(options);
     razorpayInstance.open();
-
-
   }
 
 
@@ -255,17 +257,7 @@ const Cart = () => {
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <label className="text-[9px] uppercase tracking-[0.3em] text-brand-stone font-bold">Promo Code</label>
-                  <div className="flex border-b border-black/10 focus-within:border-brand-black transition-colors">
-                    <input
-                      type="text"
-                      placeholder="ENTER CODE"
-                      className="bg-transparent border-none focus:ring-0 text-[11px] tracking-widest w-full py-3 px-0 placeholder:text-black/20"
-                    />
-                    <button className="text-[10px] uppercase tracking-[0.2em] text-brand-black font-bold px-4 hover:opacity-60">Apply</button>
-                  </div>
-                </div>
+                
 
                 <div className="space-y-6">
                   <button

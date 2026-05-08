@@ -3,6 +3,8 @@ import productModel from "../models/product.model.js";
 import { createOrder } from "../services/payment.service.js";
 import { fetchCartData } from "../dao/cart.dao.js";
 import paymentModel from "../models/payment.model.js";
+import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils.js";
+import { config } from "../config/config.js";
 
 /**
  * @desc Add item to cart
@@ -232,8 +234,8 @@ export const createOrderController = async (req, res) => {
         variantId: item.variant || null,
         quantity: item.quantity,
         price: item.price,
-        images: (item.product.variantDetails?.images?.length > 0) 
-          ? item.product.variantDetails.images 
+        images: (item.product.variantDetails?.images?.length > 0)
+          ? item.product.variantDetails.images
           : item.product.images.map(img => ({ url: img })),
         description: item.product.description,
       }))
@@ -248,4 +250,55 @@ export const createOrderController = async (req, res) => {
     console.error("Create order error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
+}
+
+
+export const verifyCartOrder = async (req, res) => {
+
+  const {
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature
+  } = req.body;
+
+  const payment = await paymentModel.findOne({
+    "razorpay.orderId": razorpay_order_id,
+    status: "pending"
+  })
+
+  if (!payment) {
+    return res.status(404).json({
+      success: false,
+      message: "Payment not found",
+    })
+  }
+
+  const isPaymentValid = validatePaymentVerification({
+    order_id: razorpay_order_id,
+    payment_id: razorpay_payment_id,
+  }, razorpay_signature, config.RAZORPAY_KEY_SECRET);
+
+  if (!isPaymentValid) {
+    payment.status = "failed";
+    await payment.save();
+
+    return res.status(400).json({
+      success: false,
+      message: "Payment verification failed",
+    })
+  }
+
+  payment.status = "paid";
+
+  payment.razorpay.paymentId = razorpay_payment_id;
+  payment.razorpay.signature = razorpay_signature;
+
+  await payment.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Payment verified successfully",
+    payment
+  })
+
 }

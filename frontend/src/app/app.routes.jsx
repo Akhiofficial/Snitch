@@ -10,6 +10,7 @@ import Home from "../features/products/pages/Home";
 import Products from "../features/products/pages/Products";
 import ProductDetail from "../features/products/pages/ProductDetail";
 import Cart from "../features/cart/pages/cart.jsx";
+import OrderSuccess from "../features/cart/pages/OrderSuccess.jsx";
 
 
 
@@ -30,6 +31,10 @@ const routes = createBrowserRouter([
     {
         path: "/cart",
         element: <Cart />
+    },
+    {
+        path: "/order-success",
+        element: <OrderSuccess />
     },
 
     {
