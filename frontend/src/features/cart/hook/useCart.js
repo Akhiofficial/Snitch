@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import * as cartApi from "../service/cart.api";
-import { setCart, setLoading, setError } from "../state/cart.slice";
+import { setCart, setLoading, setError, clearCart } from "../state/cart.slice";
 
 
 
@@ -70,6 +70,10 @@ export const useCart = () => {
     async function handleVerifyCartOrder({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
         try {
             const data = await cartApi.verifyCartOrder({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
+            if (data.success) {
+                // Clear cart in Redux state immediately after successful payment
+                dispatch(clearCart());
+            }
             return data.success;
         } catch (error) {
             console.error("Verify cart order error:", error);

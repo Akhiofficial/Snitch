@@ -295,6 +295,12 @@ export const verifyCartOrder = async (req, res) => {
 
   await payment.save();
 
+  // Clear the user's cart after successful payment
+  await cartModel.findOneAndUpdate(
+    { user: payment.user },
+    { $set: { items: [] } }
+  );
+
   return res.status(200).json({
     success: true,
     message: "Payment verified successfully",
