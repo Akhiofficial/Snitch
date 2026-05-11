@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch server.js"
+    "dev": "tsx watch server.js",
+    "start": "node --import tsx/esm server.js"
   },
   "keywords": [],
   "author": "",
