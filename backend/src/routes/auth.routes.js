@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, loginUser, googleCallback, getMe } from "../controllers/auth.controller.js";
+import { registerUser, loginUser, googleCallback, getMe, logoutUser } from "../controllers/auth.controller.js";
 import { validateRegister, validateLogin } from "../validators/auth.validator.js";
 import passport from "passport";
 import { config } from "../config/config.ts";
@@ -54,6 +54,13 @@ router.get('/google/callback',
  @access Private
 */
 router.get("/me", authenticateUser, getMe)
+
+/*
+ @route GET /api/auth/logout
+ @desc Logout a user
+ @access Private
+*/
+router.get("/logout", authenticateUser, logoutUser);
 
 
 export default router;

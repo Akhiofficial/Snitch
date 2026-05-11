@@ -2,10 +2,12 @@ import { useSelector } from 'react-redux'
 import { Link, useLocation } from 'react-router'
 import { motion } from 'framer-motion'
 import { useCart } from '../../features/cart/hook/useCart'
+import { useAuth } from '../../features/auth/hook/useAuth'
 
 const Navbar = () => {
     const user = useSelector(state => state.auth.user)
     const { items } = useCart()
+    const { handleLogout } = useAuth()
     const location = useLocation()
     
     // Check if we are on the home page
@@ -23,9 +25,17 @@ const Navbar = () => {
                 </Link>
 
                 {user ? (
-                    <span className={`text-[10px] uppercase tracking-[0.3em] font-medium transition-colors duration-500 ${isHome ? 'text-white mix-blend-difference' : 'text-brand-black'}`}>
-                        {user.username || user.name || 'Account'}
-                    </span>
+                    <div className="flex items-center gap-6">
+                        <span className={`text-[10px] uppercase tracking-[0.3em] font-medium transition-colors duration-500 ${isHome ? 'text-white mix-blend-difference' : 'text-brand-black'}`}>
+                            {user.username || user.name || 'Account'}
+                        </span>
+                        <button 
+                            onClick={handleLogout}
+                            className={`text-[10px] uppercase tracking-[0.3em] font-medium transition-colors duration-500 cursor-pointer hover:opacity-60 ${isHome ? 'text-white mix-blend-difference' : 'text-brand-black'}`}
+                        >
+                            Logout
+                        </button>
+                    </div>
                 ) : (
                     <div className="flex items-center gap-7">
                         <Link to="/login" className={`text-[10px] uppercase tracking-[0.3em] font-medium transition-colors duration-500 ${isHome ? 'text-white mix-blend-difference' : 'text-brand-black'} hover:opacity-60`}>
