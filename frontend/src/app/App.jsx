@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import { RouterProvider } from 'react-router'
-import routes from './app.routes'
+import AppRoutes from './AppRoutes'
 import { useAuth } from '../features/auth/hook/useAuth'
 import { useSelector } from 'react-redux'
 
@@ -22,7 +22,7 @@ function App() {
 
   return (
     <>
-      <RouterProvider router={routes} />
+      <RouterProvider router={AppRoutes} />
     </>
   )
 }

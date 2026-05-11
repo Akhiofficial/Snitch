@@ -2,19 +2,17 @@ import { createBrowserRouter } from "react-router";
 import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import CreateProduct from "../features/products/pages/CreateProduct";
-import SellerProductDetails from "../features/products/pages/SellerProductDetail";
+import SellerProductView from "../features/products/pages/SellerProductDetail";
 import SellerDashboard from "../features/products/pages/SellerDashboard";
 import ErrorPage from "./ErrorPage";
 import Protected from "../features/auth/components/Protected";
 import Home from "../features/products/pages/Home";
 import Products from "../features/products/pages/Products";
 import ProductDetail from "../features/products/pages/ProductDetail";
-import Cart from "../features/cart/pages/Cart.jsx";
-import OrderSuccess from "../features/cart/pages/OrderSuccess.jsx";
+import Cart from "../features/cart/pages/Cart";
+import OrderSuccess from "../features/cart/pages/OrderSuccess";
 
-
-
-const routes = createBrowserRouter([
+const AppRoutes = createBrowserRouter([
     {
         path: "/",
         element: <Home />,
@@ -38,7 +36,6 @@ const routes = createBrowserRouter([
         path: "/order-success",
         element: <OrderSuccess />
     },
-
     {
         path: "/login",
         element: <Login />
@@ -52,26 +49,24 @@ const routes = createBrowserRouter([
         children: [
             {
                 path: "create-product",
-                element: <Protected 
-                role="seller"
-                > <CreateProduct /> </Protected>
+                element: <Protected role="seller">
+                    <CreateProduct />
+                </Protected>
             },
             {
                 path: "product/:id",
-                element: <Protected 
-                role="seller"
-                > <SellerProductDetails /> </Protected>
+                element: <Protected role="seller">
+                    <SellerProductView />
+                </Protected>
             },
             {
                 path: "dashboard",
-                element: <Protected 
-                role="seller"
-                > <SellerDashboard /> </Protected>
+                element: <Protected role="seller">
+                    <SellerDashboard />
+                </Protected>
             }
         ]
     }
-
 ]);
 
-
-export default routes;
+export default AppRoutes;
