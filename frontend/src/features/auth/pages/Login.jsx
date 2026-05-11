@@ -154,7 +154,10 @@ const Login = () => {
                         </div>
 
                         <button
-                            onClick={() => window.location.href = "/api/auth/google"}
+                            onClick={() => {
+                                const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+                                window.location.href = `${baseUrl}/api/auth/google`;
+                            }}
                             type="button"
                             className="w-full bg-white hover:bg-zinc-50 text-[#1f1f1f] font-roboto font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-all border border-[#747775] active:scale-[0.99] shadow-sm"
                         >
